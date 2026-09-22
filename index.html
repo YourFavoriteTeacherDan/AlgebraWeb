@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Mathematics & Logic Portal</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📐</text></svg>">
+    <style>
+        :root {
+            --bg-body: #f8fafc;
+            --bg-panel: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --border: #e2e8f0;
+            --correct: #10b981;
+            --wrong: #ef4444;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Top Navigation Header */
+        header {
+            background-color: var(--bg-panel);
+            border-bottom: 2px solid var(--border);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background-color: var(--bg-body);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background-color: #e2e8f0;
+            color: var(--text-main);
+        }
+
+        .nav-btn.active {
+            background-color: var(--accent);
+            color: #ffffff;
+            border-color: var(--accent);
+        }
+
+        /* Main Content Container */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .section {
+            display: none;
+            width: 100%;
+            max-width: 900px;
+            background: var(--bg-panel);
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            box-sizing: border-box;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .section.active {
+            display: flex;
+        }
+
+        /* Form & Input Elements */
+        select, input[type="number"], input[type="text"], textarea {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            font-size: 1rem;
+            outline: none;
+            font-family: inherit;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+
+        .action-btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover { background-color: var(--accent-hover); }
+
+        /* Practice Test Styles */
+        .settings-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .problem-display {
+            font-size: 4rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        #math-answer {
+            font-size: 2.5rem;
+            text-align: center;
+            width: 150px;
+            font-weight: bold;
+        }
+
+        .timer-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--wrong);
+            margin-bottom: 10px;
+        }
+
+        .history-log {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 500px;
+            background: var(--bg-body);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .history-item.correct { color: var(--correct); }
+        .history-item.wrong { color: var(--wrong); }
+
+        /* Reference Tables Styles */
+        .table-grid {
+            display: grid;
+            grid-template-columns: repeat(13, 1fr);
+            gap: 1px;
+            background-color: var(--border);
+            border: 1px solid var(--border);
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .table-cell {
+            background: var(--bg-panel);
+            padding: 12px 5px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .table-cell.header { background-color: var(--accent); color: white; }
+        .table-cell.highlight { background-color: #dbeafe; }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .list-box {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 15px;
+            background: var(--bg-body);
+            height: 200px;
+            overflow-y: auto;
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        /* Graphing & Calculator Styles */
+        canvas {
+            background: #ffffff;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 700px;
+        }
+
+        .calc-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            width: 100%;
+            max-width: 400px;
+            margin-top: 20px;
+        }
+
+        .calc-btn {
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            padding: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .calc-btn:hover { background: #e2e8f0; }
+        .calc-btn.op { background: var(--text-muted); color: white; border-color: var(--text-muted); }
+        .calc-btn.solve { background: var(--accent); color: white; border-color: var(--accent); grid-column: span 2; }
+
+        #calc-display {
+            width: 100%;
+            max-width: 400px;
+            font-size: 2rem;
+            text-align: right;
+            padding: 15px;
+            box-sizing: border-box;
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        /* Computer Science / Binary Converter Styles */
+        .binary-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Panic Screen */
+        #panic-screen {
+            display: none;
+            position: fixed;
+            z-index: 99999999;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #202124;
+            color: #fff;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            cursor: none;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">📐 Advanced Mathematics Portal</div>
+        <div class="nav-buttons">
+            <button class="nav-btn active" onclick="switchTab('practice', this)">Mental Math</button>
+            <button class="nav-btn" onclick="switchTab('calc', this)">Calculator</button>
+            <button class="nav-btn" onclick="switchTab('graphing', this)">2D Graphing</button>
+            <button class="nav-btn" onclick="switchTab('tables', this)">Constants</button>
+            <button class="nav-btn" onclick="switchTab('binary', this)">Cryptography</button>
+        </div>
+    </header>
+
+    <div class="content-area">
+        
+        <!-- SECTION 1: PRACTICE TEST -->
+        <div id="sec-practice" class="section active">
+            <h2 style="margin-top:0;">Mental Math Blitz</h2>
+            <div class="settings-bar">
+                <select id="math-op">
+                    <option value="add">Addition (+)</option>
+                    <option value="sub">Subtraction (-)</option>
+                    <option value="mult" selected>Multiplication (×)</option>
+                    <option value="div">Division (÷)</option>
+                    <option value="alg">Algebra (Solve for x)</option>
+                </select>
+                <select id="math-diff">
+                    <option value="easy">Easy</option>
+                    <option value="med" selected>Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+                <select id="math-time">
+                    <option value="30">30 Sec</option>
+                    <option value="60" selected>1 Min</option>
+                    <option value="120">2 Min</option>
+                </select>
+                <button class="action-btn" onclick="startMathTest()">Start Exam</button>
+            </div>
+
+            <div class="timer-display" id="timer-display" style="display:none;">Time Remaining: <span id="time-left">60</span>s</div>
+            <div class="problem-display" id="problem-text">Press Start</div>
+            <input type="number" id="math-answer" placeholder="?" disabled autocomplete="off" onkeydown="if(event.key==='Enter') submitAnswer()">
+            
+            <div class="history-log" id="math-history">
+                <div style="padding: 15px; text-align: center; color: var(--text-muted);">Results log will appear here.</div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: SCIENTIFIC CALCULATOR -->
+        <div id="sec-calc" class="section">
+            <h2 style="margin-top:0; margin-bottom:5px;">Standard Calculator</h2>
+            <p style="color:var(--text-muted); margin-bottom:20px;">Basic arithmetic and scientific operations.</p>
+            
+            <input type="text" id="calc-display" disabled value="0">
+            <div class="calc-grid">
+                <button class="calc-btn op" onclick="calcInput('c')">C</button>
+                <button class="calc-btn op" onclick="calcInput('(')">(</button>
+                <button class="calc-btn op" onclick="calcInput(')')">)</button>
+                <button class="calc-btn op" onclick="calcInput('/')">÷</button>
+                
+                <button class="calc-btn" onclick="calcInput('7')">7</button>
+                <button class="calc-btn" onclick="calcInput('8')">8</button>
+                <button class="calc-btn" onclick="calcInput('9')">9</button>
+                <button class="calc-btn op" onclick="calcInput('*')">×</button>
+                
+                <button class="calc-btn" onclick="calcInput('4')">4</button>
+                <button class="calc-btn" onclick="calcInput('5')">5</button>
+                <button class="calc-btn" onclick="calcInput('6')">6</button>
+                <button class="calc-btn op" onclick="calcInput('-')">-</button>
+                
+                <button class="calc-btn" onclick="calcInput('1')">1</button>
+                <button class="calc-btn" onclick="calcInput('2')">2</button>
+                <button class="calc-btn" onclick="calcInput('3')">3</button>
+                <button class="calc-btn op" onclick="calcInput('+')">+</button>
+                
+                <button class="calc-btn" onclick="calcInput('0')">0</button>
+                <button class="calc-btn" onclick="calcInput('.')">.</button>
+                <button class="calc-btn solve" onclick="calcInput('=')">=</button>
+            </div>
+        </div>
+
+        <!-- SECTION 3: GRAPHING CALCULATOR -->
+        <div id="sec-graphing" class="section">
+            <h2 style="margin-top:0;">2D Function Plotter</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">Visualize trigonometric and algebraic functions. Type equations naturally (e.g., "sin(x) * 5" or "x*x / 10").</p>
+            
+            <div style="display:flex; gap:10px; width: 100%; max-width: 600px; margin-bottom: 20px;">
+                <span style="font-size: 1.5rem; font-weight: bold; line-height: 40px;">f(x) = </span>
+                <input type="text" id="graph-eq" value="sin(x) * 5" style="flex:1; font-family: monospace; font-size: 1.2rem;" onkeydown="if(event.key==='Enter') drawGraph()">
+                <button class="action-btn" onclick="drawGraph()">Plot Function</button>
+            </div>
+
+            <canvas id="graph-cvs" width="700" height="400"></canvas>
+        </div>
+
+        <!-- SECTION 4: REFERENCE TABLES -->
+        <div id="sec-tables" class="section">
+            <h2 style="margin-top:0; margin-bottom: 20px;">Mathematical Constants & Tables</h2>
+            
+            <h3 style="align-self: flex-start; margin-bottom: 10px;">Multiplication Matrix (1-12)</h3>
+            <div id="multiplication-grid" class="table-grid" style="margin-bottom: 30px;"></div>
+
+            <div class="grid-container">
+                <div>
+                    <h3 style="margin-bottom: 10px;">Prime Numbers (< 100)</h3>
+                    <div class="list-box">
+                        2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97
+                    </div>
+                </div>
+                <div>
+                    <h3 style="margin-bottom: 10px;">Unit Conversions</h3>
+                    <div class="list-box" style="font-family: monospace;">
+                        1 inch   = 2.54 cm<br>
+                        1 foot   = 30.48 cm<br>
+                        1 yard   = 0.9144 m<br>
+                        1 mile   = 1.609 km<br>
+                        1 ounce  = 28.35 g<br>
+                        1 pound  = 0.4536 kg<br>
+                        1 gallon = 3.785 L<br>
+                        1 radian = 180/π deg
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 5: COMPUTER SCIENCE (THE ENCRYPTED LAUNCHER) -->
+        <div id="sec-binary" class="section">
+            <h2 style="margin-top:0;">Cryptography & Decryption Sandbox</h2>
+            <p style="color: var(--text-muted); text-align: left; width: 100%;">
+                Study Advanced Encryption Standard (AES) theories and XOR manipulation. 
+                Paste a Base64 encoded payload and provide the decryption matrix key to retrieve the original string.
+            </p>
+
+            <div class="binary-container">
+                <label style="font-weight: bold;">Ciphertext Payload (Base64 XOR):</label>
+                <textarea id="crypto-input" rows="4" placeholder="Paste encoded payload here..."></textarea>
+                
+                <div style="display:flex; gap:10px; align-items: center;">
+                    <label style="font-weight: bold;">Decryption Key:</label>
+                    <input type="text" id="crypto-key" placeholder="Enter Numeric Key..." style="width: 200px;">
+                    <button class="action-btn" onclick="decryptPayload()">Decode Sequence</button>
+                </div>
+                
+                <label style="font-weight: bold; margin-top: 15px;">Output Buffer:</label>
+                <div id="crypto-output" style="padding: 15px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-body); min-height: 50px; word-wrap: break-word; font-family: monospace;">
+                    Awaiting payload sequence...
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PANIC SCREEN -->
+    <div id="panic-screen">
+        <svg viewBox="0 0 24 24" style="width: 72px; height: 72px; animation: spin 2s linear infinite;">
+             <path fill="#4285F4" d="M12 8.5c-1.9 0-3.5 1.6-3.5 3.5s1.6 3.5 3.5 3.5 3.5-1.6 3.5-3.5-1.6-3.5-3.5-3.5z"/>
+             <path fill="#EA4335" d="M12 2C6.5 2 2 6.5 2 12h3.5c0-3.6 2.9-6.5 6.5-6.5h7.1C17.1 3.5 14.7 2 12 2z"/>
+             <path fill="#34A853" d="M2 12c0 5.5 4.5 10 10 10 2.7 0 5.1-1.1 6.9-2.9l-3-5.2c-1 .8-2.4 1.3-3.9 1.3-3.6 0-6.5-2.9-6.5-6.5H2z"/>
+             <path fill="#FBBC05" d="M22 12c0-5.5-4.5-10-10-10v3.5c3.6 0 6.5 2.9 6.5 6.5 0 1.5-.5 2.9-1.3 3.9l5.2 3c1.8-1.8 2.9-4.2 2.9-6.9z"/>
+        </svg>
+        <h2 style="font-weight: 400; margin-top: 30px; font-size: 1.5rem;">Updating your device...</h2>
+        <p style="color:#9aa0a6; font-size: 0.9rem;">Please do not turn off your computer.</p>
+    </div>
+
+    <script>
+        // --- NAVIGATION LOGIC ---
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById('sec-' + tabId).classList.add('active');
+            btnElement.classList.add('active');
+
+            if (tabId === 'tables' && document.getElementById('multiplication-grid').innerHTML === '') generateMultiplicationTable();
+            if (tabId === 'graphing') drawGraph();
+        }
+
+        // --- GLOBAL KEYLOGGER & STEALTH SYSTEM ---
+        let keyBuffer = "";
+        let isPanic = false;
+
+        window.addEventListener('keydown', (e) => {
+            let isTyping = (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable);
+            
+            // Boss Key trigger (Equals sign '=')
+            if (e.key === '=' && !isTyping) {
+                isPanic = true;
+                document.getElementById('panic-screen').style.display = 'flex';
+                document.title = "Updating Chromebook...";
+                return;
+            }
+
+            if (e.key.length === 1) {
+                if (!isTyping) {
+                    keyBuffer += e.key.toLowerCase();
+                    if (keyBuffer.length > 20) keyBuffer = keyBuffer.slice(-20);
+
+                    // Unlock Panic Screen
+                    if (isPanic && keyBuffer.endsWith("gulo")) {
+                        isPanic = false;
+                        document.getElementById('panic-screen').style.display = 'none';
+                        document.title = "Advanced Mathematics & Logic Portal";
+                        keyBuffer = "";
+                    }
+
+                    // Direct Launch Prompt Shortcut
+                    if (!isPanic && keyBuffer.endsWith("gulo856")) {
+                        keyBuffer = "";
+                        let enc = prompt("Admin Bypass. Enter payload sequence:");
+                        if(enc) performDecryption(enc, "856", null);
+                    }
+                }
+            }
+        });
+
+
+        // --- CRYPTOGRAPHY & DECRYPTION (THE CLOAKER) ---
+        // XOR Encrypt/Decrypt Engine
+        function xorEngine(input, key) {
+            let output = '';
+            for (let i = 0; i < input.length; i++) {
+                output += String.fromCharCode(input.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+            }
+            return output;
+        }
+
+        function decryptPayload() {
+            const payload = document.getElementById('crypto-input').value.trim();
+            const key = document.getElementById('crypto-key').value.trim();
+            const outputBox = document.getElementById('crypto-output');
+
+            if (!payload || !key) {
+                outputBox.innerText = "Error: Sequence or Key missing.";
+                return;
+            }
+            performDecryption(payload, key, outputBox);
+        }
+
+        function performDecryption(payload, key, outputBox) {
+            try {
+                // Decode Base64, then XOR decrypt
+                let decrypted = xorEngine(atob(payload), key);
+
+                // SECRET LAUNCH TRIGGER
+                // If it decrypts perfectly into a URL, launch the cloak.
+                if (decrypted.startsWith('http://') || decrypted.startsWith('https://') || decrypted.startsWith('//')) {
+                    
+                    let win = window.open('about:blank', '_blank');
+                    if(!win) {
+                        if(outputBox) outputBox.innerText = "Error: Popup Blocker prevented execution. Please allow popups.";
+                        else alert("Popup blocked.");
+                        return;
+                    }
+
+                    // Write the disguised iFrame
+                    win.document.write(`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Desmos | Graphing Calculator</title>
+                            <link rel="icon" href="https://www.desmos.com/favicon.ico">
+                            <style>
+                                body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #000; }
+                                iframe { width: 100vw; height: 100vh; border: none; display: block; }
+                            </style>
+                        </head>
+                        <body>
+                            <iframe src="${decrypted}"></iframe>
+                            <script>
+                                window.onbeforeunload = function() { return "Leave session?"; };
+                            <\/script>
+                        </body>
+                        </html>
+                    `);
+                    win.document.close();
+
+                    if(outputBox) outputBox.innerText = "Payload validated. Execution spawned in isolated sandbox.";
+
+                    // Disguise the current tab
+                    window.location.replace("https://www.khanacademy.org/");
+                } else {
+                    // Normal behavior: Just show the decoded text for learning purposes
+                    if(outputBox) outputBox.innerText = decrypted;
+                }
+            } catch (err) {
+                if(outputBox) outputBox.innerText = "Decryption failed. The payload is corrupted or the key is incorrect.";
+            }
+        }
+
+
+        // --- SECTION 1: MENTAL MATH BLITZ ---
+        let timerInterval;
+        let currentAnswer;
+        let currentProblemString;
+
+        function startMathTest() {
+            clearInterval(timerInterval);
+            let time = parseInt(document.getElementById('math-time').value);
+            document.getElementById('timer-display').style.display = 'block';
+            document.getElementById('time-left').innerText = time;
+            document.getElementById('math-history').innerHTML = '';
+            
+            const inputField = document.getElementById('math-answer');
+            inputField.disabled = false;
+            inputField.value = '';
+            inputField.focus();
+            generateProblem();
+
+            timerInterval = setInterval(() => {
+                time--;
+                document.getElementById('time-left').innerText = time;
+                if(time <= 0) {
+                    clearInterval(timerInterval);
+                    inputField.disabled = true;
+                    document.getElementById('problem-text').innerText = "Time's Up!";
+                }
+            }, 1000);
+        }
+
+        function generateProblem() {
+            const op = document.getElementById('math-op').value;
+            const diff = document.getElementById('math-diff').value;
+            
+            let max = diff === 'easy' ? 10 : (diff === 'med' ? 25 : 100);
+            let num1 = Math.floor(Math.random() * max) + 1;
+            let num2 = Math.floor(Math.random() * max) + 1;
+
+            if (op === 'add') {
+                currentAnswer = num1 + num2; currentProblemString = `${num1} + ${num2}`;
+            } else if (op === 'sub') {
+                if (num2 > num1) [num1, num2] = [num2, num1];
+                currentAnswer = num1 - num2; currentProblemString = `${num1} - ${num2}`;
+            } else if (op === 'mult') {
+                max = diff === 'easy' ? 9 : (diff === 'med' ? 15 : 25);
+                num1 = Math.floor(Math.random() * max) + 1; num2 = Math.floor(Math.random() * max) + 1;
+                currentAnswer = num1 * num2; currentProblemString = `${num1} × ${num2}`;
+            } else if (op === 'div') {
+                max = diff === 'easy' ? 10 : (diff === 'med' ? 15 : 20);
+                num2 = Math.floor(Math.random() * max) + 1;
+                num1 = num2 * (Math.floor(Math.random() * max) + 1);
+                currentAnswer = num1 / num2; currentProblemString = `${num1} ÷ ${num2}`;
+            } else if (op === 'alg') {
+                let a = Math.floor(Math.random() * 9) + 2; let x = Math.floor(Math.random() * 12) + 1; let b = Math.floor(Math.random() * 20) + 1;
+                let c = (a * x) + b;
+                currentAnswer = x; currentProblemString = `${a}x + ${b} = ${c}, x`;
+            }
+            document.getElementById('problem-text').innerText = `${currentProblemString} = `;
+        }
+
+        function submitAnswer() {
+            const inputField = document.getElementById('math-answer');
+            const userAnswer = parseInt(inputField.value);
+            if (isNaN(userAnswer)) return;
+
+            const historyLog = document.getElementById('math-history');
+            const logItem = document.createElement('div');
+            
+            if (userAnswer === currentAnswer) {
+                logItem.className = 'history-item correct';
+                logItem.innerHTML = `<span>${currentProblemString} = ${userAnswer}</span> <span>Correct ✓</span>`;
+            } else {
+                logItem.className = 'history-item wrong';
+                logItem.innerHTML = `<span>${currentProblemString} = ${userAnswer} (Expected ${currentAnswer})</span> <span>Wrong ✗</span>`;
+            }
+            historyLog.prepend(logItem);
+            inputField.value = '';
+            generateProblem();
+        }
+
+        // --- SECTION 2: CALCULATOR ---
+        let calcStr = "0";
+        function calcInput(char) {
+            const display = document.getElementById('calc-display');
+            if (char === 'c') { calcStr = "0"; }
+            else if (char === '=') {
+                try { calcStr = String(eval(calcStr)); } catch(e) { calcStr = "Error"; }
+            } else {
+                if (calcStr === "0" || calcStr === "Error") calcStr = char;
+                else calcStr += char;
+            }
+            display.value = calcStr;
+        }
+
+        // --- SECTION 3: GRAPHING ---
+        function drawGraph() {
+            const canvas = document.getElementById('graph-cvs');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let eqStr = document.getElementById('graph-eq').value.toLowerCase().trim();
+            
+            const w = canvas.width;
+            const h = canvas.height;
+            const scale = 40; // Zoom level: pixels per unit
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Draw Grid
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#e2e8f0';
+            for (let i = 0; i <= w; i += scale) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, h); ctx.stroke(); }
+            for (let i = 0; i <= h; i += scale) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(w, i); ctx.stroke(); }
+
+            // Draw Axes
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#64748b';
+            ctx.beginPath(); ctx.moveTo(0, h/2); ctx.lineTo(w, h/2); ctx.stroke(); // X
+            ctx.beginPath(); ctx.moveTo(w/2, 0); ctx.lineTo(w/2, h); ctx.stroke(); // Y
+
+            // Parse Equation Safely
+            // Convert math terms to Javascript Math object references
+            const mathTerms = ['sin', 'cos', 'tan', 'log', 'sqrt', 'pow', 'abs', 'pi', 'e'];
+            let parsedEq = eqStr;
+            mathTerms.forEach(term => {
+                let re = new RegExp('\\b' + term + '\\b', 'g');
+                parsedEq = parsedEq.replace(re, 'Math.' + term);
+            });
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = 2;
+            
+            let isFirst = true;
+            for(let px = 0; px <= w; px++) {
+                let mathX = (px - w/2) / scale;
+                try {
+                    let func = new Function('x', 'return ' + parsedEq + ';');
+                    let mathY = func(mathX);
+                    let py = h/2 - (mathY * scale);
+                    
+                    if (!isFinite(py)) { isFirst = true; continue; }
+                    
+                    if(isFirst) {
+                        ctx.moveTo(px, py);
+                        isFirst = false;
+                    } else {
+                        ctx.lineTo(px, py);
+                    }
+                } catch(e) {
+                    break; // Invalid equation
+                }
+            }
+            ctx.stroke();
+        }
+
+        // --- SECTION 4: REFERENCE TABLES ---
+        function generateMultiplicationTable() {
+            const grid = document.getElementById('multiplication-grid');
+            grid.innerHTML = '';
+            for(let r = 0; r <= 12; r++) {
+                for(let c = 0; c <= 12; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'table-cell';
+                    if (r === 0 && c === 0) { cell.textContent = '×'; cell.classList.add('header'); } 
+                    else if (r === 0) { cell.textContent = c; cell.classList.add('header'); } 
+                    else if (c === 0) { cell.textContent = r; cell.classList.add('header'); } 
+                    else { 
+                        cell.textContent = r * c; 
+                        if (r === c) cell.classList.add('highlight'); 
+                    }
+                    grid.appendChild(cell);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
