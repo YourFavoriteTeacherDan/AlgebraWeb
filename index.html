@@ -84,8 +84,8 @@
         .icon-btn { background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; padding: 4px; border-radius: 4px; transition: var(--transition-speed); }
         .icon-btn:hover { color: var(--accent); background: rgba(126, 158, 242, 0.1); }
 
-        .key-input { width: 100%; padding: 10px; border-radius: var(--btn-radius); border: 1px solid var(--border); background: var(--bg-console); color: white; margin-bottom: 12px; box-sizing: border-box; font-size: 0.85rem; outline: none; transition: border var(--transition-speed); }
-        .key-input:focus { border-color: var(--accent); }
+        .key-input, .search-input { width: 100%; padding: 10px; border-radius: var(--btn-radius); border: 1px solid var(--border); background: var(--bg-console); color: white; margin-bottom: 12px; box-sizing: border-box; font-size: 0.85rem; outline: none; transition: border var(--transition-speed); }
+        .key-input:focus, .search-input:focus { border-color: var(--accent); }
 
         .btn {
             border: 1px solid var(--border); color: #18191a; background-color: var(--accent);
@@ -135,7 +135,7 @@
         
         .action-btns { display: none; gap: 4px; }
         .action-btns button { background: none; border: none; cursor: pointer; padding: 4px 6px; border-radius: 4px; font-size: 0.9rem; }
-        .blank-btn:hover { background: rgba(126, 158, 242, 0.2); color: var(--accent); }
+        .blank-btn:hover, .normal-btn:hover { background: rgba(126, 158, 242, 0.2); color: var(--accent); }
         .delete-btn { color: var(--danger); }
         .delete-btn:hover { background: rgba(252, 96, 96, 0.2); }
         .file-item:hover .action-btns { display: flex; }
@@ -236,6 +236,9 @@
                 <h2>Study Viewer</h2>
                 <button id="view-toggle-btn" class="icon-btn" title="Toggle Grid/List View" onclick="toggleViewMode()">🔲</button>
             </div>
+
+            <!-- Added Search Bar for Files -->
+            <input type="text" id="file-search" class="search-input" placeholder="🔍 Search Files..." onkeyup="filterFiles()">
             
             <label class="turbo-toggle-container" title="Bypass iframe for max HTML/WebGL performance">
                 <div class="turbo-toggle-label">🚀 Turbo Mode</div>
@@ -272,7 +275,8 @@
                 <h3 style="color: var(--accent); margin-bottom: 5px;">No Content Loaded</h3>
                 <p style="margin-top: 0; font-size: 0.9rem;">Upload a file or sync a repo to begin.</p>
             </div>
-            <iframe id="content-frame" allow="cross-origin-isolated; autoplay; pointer-lock; keyboard; microphone; fullscreen; clipboard-read; clipboard-write"></iframe>
+            <!-- Removed unrecognized policies from allow attribute -->
+            <iframe id="content-frame" allow="cross-origin-isolated; autoplay; microphone; fullscreen; clipboard-read; clipboard-write"></iframe>
             
             <div class="ui-hints">
                 <strong>~ / `</strong> Stealth Cloak<br>
@@ -414,6 +418,23 @@
             }
         }
 
+        // --- Search Functionality ---
+        function filterFiles() {
+            const query = document.getElementById('file-search').value.toLowerCase();
+            const items = document.querySelectorAll('.file-item');
+            
+            items.forEach(item => {
+                const name = item.querySelector('.file-name').textContent.toLowerCase();
+                item.style.display = name.includes(query) ? '' : 'none';
+            });
+            
+            // Hide empty folder groups
+            document.querySelectorAll('.folder-group').forEach(folder => {
+                const hasVisible = Array.from(folder.querySelectorAll('.file-item')).some(i => i.style.display !== 'none');
+                folder.style.display = hasVisible ? '' : 'none';
+            });
+        }
+
         // --- Modals & Views ---
         function openModal(id) { const m = document.getElementById(id); m.style.display = 'flex'; setTimeout(() => m.classList.add('visible'), 10); }
         function closeModal(id) { const m = document.getElementById(id); m.classList.remove('visible'); setTimeout(() => m.style.display = 'none', 200); }
@@ -426,7 +447,8 @@
         if(localStorage.getItem('study-view-mode') === 'grid') toggleViewMode();
 
         // --- IndexedDB Setup ---
-        const request = indexedDB.open(DB_NAME, 3);
+        // Version bumped to 4 to fix the transaction error on un-initialized LOG_STOREs
+        const request = indexedDB.open(DB_NAME, 4);
         request.onupgradeneeded = (e) => {
             db = e.target.result;
             if (!db.objectStoreNames.contains(FILE_STORE)) db.createObjectStore(FILE_STORE, { keyPath: "path" });
@@ -518,8 +540,13 @@
         // --- File Tree Rendering & Hub Parsing ---
         function openHubInBlank(url) {
             let win = window.open('about:blank');
-            win.document.write(`<title>Algebra Notes</title><style>body{margin:0;overflow:hidden;background:#000;}</style><iframe src="${url}" style="width:100vw;height:100vh;border:none;"></iframe>`);
-            win.document.close();
+            if (win) {
+                win.document.write(`<title>Algebra Notes</title><style>body{margin:0;overflow:hidden;background:#000;}</style><iframe src="${url}" style="width:100vw;height:100vh;border:none;"></iframe>`);
+                win.document.close();
+            } else {
+                alert("Popup blocked! Please allow popups to launch hubs.");
+                logToConsole('error', 'Popup blocked while launching hub.');
+            }
         }
 
         function renderFileTree() {
@@ -587,9 +614,11 @@
                             imgHTML = `<img src="${imgUrl}" class="file-icon custom-icon">`;
                         }
                         
+                        // Selectable Normal/Turbo Launch buttons added per item
                         li.innerHTML = `
                             <div class="file-info">${imgHTML}<span class="file-name" title="${file.name}">${file.name}</span></div>
                             <div class="action-btns">
+                                <button class="normal-btn" title="Launch Normal (Iframe)">▶️</button>
                                 <button class="blank-btn" title="Popout (Turbo Launch)">🚀</button>
                                 <button class="delete-btn" title="Delete File">✕</button>
                             </div>
@@ -598,10 +627,18 @@
                         li.addEventListener('click', (ev) => {
                             if (ev.target.closest('.delete-btn')) { ev.stopPropagation(); deleteVirtualFile(file.path); return; }
                             
-                            // Check if explicit popout button clicked, OR if global Turbo Mode is enabled
-                            const isTurboActive = turboToggle.checked;
-                            const explicitPopout = ev.target.closest('.blank-btn') !== null;
-                            const inBlank = explicitPopout || isTurboActive;
+                            const isTurboBtn = ev.target.closest('.blank-btn') !== null;
+                            const isNormalBtn = ev.target.closest('.normal-btn') !== null;
+                            
+                            // If explicit button clicked, obey it. Otherwise obey global master switch.
+                            let inBlank = false;
+                            if (isTurboBtn) {
+                                inBlank = true;
+                            } else if (isNormalBtn) {
+                                inBlank = false;
+                            } else {
+                                inBlank = turboToggle.checked;
+                            }
                             
                             document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
                             li.classList.add('active');
@@ -613,6 +650,7 @@
                     });
                     fileTree.appendChild(folderDiv);
                 });
+                filterFiles(); // Refresh search filter after render
             };
         }
 
@@ -687,9 +725,14 @@
 
                 if (openInBlankMode) {
                     let win = window.open('about:blank');
-                    win.document.write(htmlContent);
-                    win.document.close();
-                    logToConsole('sys', `Launched dynamically into raw about:blank top-level window (Max Performance Mode).`);
+                    if (win) {
+                        win.document.write(htmlContent);
+                        win.document.close();
+                        logToConsole('sys', `Launched dynamically into raw about:blank top-level window (Max Performance Mode).`);
+                    } else {
+                        alert("Popup blocked! Please allow popups to use Turbo Mode.");
+                        logToConsole('error', 'Popup blocked! Launch failed.');
+                    }
                 } else {
                     const modifiedBlob = new Blob([htmlContent], { type: 'text/html' });
                     contentFrame.src = URL.createObjectURL(modifiedBlob);
@@ -710,32 +753,40 @@
         function clearCurrentConsole() { consoleOut.innerHTML = ''; logToConsole('sys', 'Console wiped.'); }
         function toggleConsole() { const container = document.getElementById('console-container'); const btn = document.getElementById('console-toggle-btn'); container.classList.toggle('collapsed'); btn.textContent = container.classList.contains('collapsed') ? 'Expand' : 'Minimize'; }
 
+        // Added checks here to prevent transaction errors
         setInterval(() => {
             if (db && pendingLogSave && sessionLogs.length > 0 && currentSessionId) {
-                db.transaction([LOG_STORE], "readwrite").objectStore(LOG_STORE).put({ id: currentSessionId, date: currentSessionDate, logCount: sessionLogs.length, data: sessionLogs });
-                pendingLogSave = false;
+                try {
+                    if (db.objectStoreNames.contains(LOG_STORE)) {
+                        db.transaction([LOG_STORE], "readwrite").objectStore(LOG_STORE).put({ id: currentSessionId, date: currentSessionDate, logCount: sessionLogs.length, data: sessionLogs });
+                        pendingLogSave = false;
+                    }
+                } catch(e) {}
             }
         }, 2000);
 
         function renderLogList() {
             const dbList = document.getElementById('db-list');
             if (!db) return;
-            db.transaction([LOG_STORE], "readonly").objectStore(LOG_STORE).getAll().onsuccess = (e) => {
-                const results = e.target.result.reverse();
-                if (results.length === 0) { dbList.innerHTML = "<div style='color:var(--text-muted); text-align:center; padding: 20px;'>No logs.</div>"; return; }
-                dbList.innerHTML = '';
-                results.forEach(record => {
-                    const row = document.createElement('div'); row.className = 'db-item';
-                    const info = document.createElement('span');
-                    info.innerHTML = `<strong>Session: ${record.date}</strong><br><span style="font-size:12px;color:var(--text-muted);">${record.logCount} logs</span>`;
-                    const btnGroup = document.createElement('div');
-                    const dBtn = document.createElement('button'); dBtn.className = "btn btn-secondary"; dBtn.textContent = '📥';
-                    dBtn.onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([record.data.join('\n')], { type: 'text/plain' })); a.download = `Log_${record.date.replace(/[/\\:]/g, '-')}.txt`; a.click(); };
-                    const delBtn = document.createElement('button'); delBtn.className = 'btn btn-red'; delBtn.textContent = '🗑';
-                    delBtn.onclick = () => { if (confirm("Delete?")) db.transaction([LOG_STORE], "readwrite").objectStore(LOG_STORE).delete(record.id).oncomplete = renderLogList; };
-                    btnGroup.appendChild(dBtn); btnGroup.appendChild(delBtn); row.appendChild(info); row.appendChild(btnGroup); dbList.appendChild(row);
-                });
-            };
+            try {
+                if (!db.objectStoreNames.contains(LOG_STORE)) return;
+                db.transaction([LOG_STORE], "readonly").objectStore(LOG_STORE).getAll().onsuccess = (e) => {
+                    const results = e.target.result.reverse();
+                    if (results.length === 0) { dbList.innerHTML = "<div style='color:var(--text-muted); text-align:center; padding: 20px;'>No logs.</div>"; return; }
+                    dbList.innerHTML = '';
+                    results.forEach(record => {
+                        const row = document.createElement('div'); row.className = 'db-item';
+                        const info = document.createElement('span');
+                        info.innerHTML = `<strong>Session: ${record.date}</strong><br><span style="font-size:12px;color:var(--text-muted);">${record.logCount} logs</span>`;
+                        const btnGroup = document.createElement('div');
+                        const dBtn = document.createElement('button'); dBtn.className = "btn btn-secondary"; dBtn.textContent = '📥';
+                        dBtn.onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([record.data.join('\n')], { type: 'text/plain' })); a.download = `Log_${record.date.replace(/[/\\:]/g, '-')}.txt`; a.click(); };
+                        const delBtn = document.createElement('button'); delBtn.className = 'btn btn-red'; delBtn.textContent = '🗑';
+                        delBtn.onclick = () => { if (confirm("Delete?")) db.transaction([LOG_STORE], "readwrite").objectStore(LOG_STORE).delete(record.id).oncomplete = renderLogList; };
+                        btnGroup.appendChild(dBtn); btnGroup.appendChild(delBtn); row.appendChild(info); row.appendChild(btnGroup); dbList.appendChild(row);
+                    });
+                };
+            } catch(e) {}
         }
 
         // --- Utilities ---
