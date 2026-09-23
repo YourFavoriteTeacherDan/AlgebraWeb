@@ -6,7 +6,7 @@
     <title>Advanced Mathematics & Logic Portal</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📐</text></svg>">
     
-    <!-- Obfuscated Auto-Cloak -->
+    <!-- Obfuscated Auto-Cloak (Runs on boot) -->
     <script>
         (function(){
             const c = window.location.protocol;
@@ -23,419 +23,448 @@
 
     <style>
         :root {
-            --bg-main: #18191a; --bg-sidebar: #212325; --bg-console: #161718;
-            --text-main: #e8eaed; --text-muted: #9aa0a6; --accent: #7e9ef2;
-            --border: rgba(255, 255, 255, 0.08); --danger: #fc6060; --success: #67c780; --warning: #fbbc05;
-            --btn-radius: 8px; --transition-speed: 0.2s;
+            --bg-body: #f8fafc; --bg-panel: #ffffff; --text-main: #1e293b;
+            --text-muted: #64748b; --accent: #2563eb; --accent-hover: #1d4ed8;
+            --border: #e2e8f0; --correct: #10b981; --wrong: #ef4444;
+            --bg-sidebar: #1e293b; --text-sidebar: #f8fafc; --sidebar-hover: rgba(255,255,255,0.1);
+            --btn-radius: 6px; --transition-speed: 0.2s;
         }
 
         body {
             margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg-main); color: var(--text-main);
-            height: 100vh; overflow: hidden;
+            background: var(--bg-body); color: var(--text-main);
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
 
-        /* --- DECOY UI --- */
-        #decoy-ui {
-            width: 100vw; height: 100vh; background: #ffffff;
-            display: flex; flex-direction: column; z-index: 999999;
+        /* --- Header --- */
+        header {
+            background-color: var(--bg-panel); border-bottom: 2px solid var(--border);
+            padding: 12px 20px; display: flex; justify-content: space-between;
+            align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); z-index: 10;
         }
-        #decoy-header {
-            background: #f1f3f4; padding: 12px 24px; border-bottom: 1px solid #dadce0;
-            color: #202124; font-size: 18px; font-family: Arial, sans-serif; font-weight: bold;
-        }
-        #decoy-textarea {
-            flex: 1; border: none; padding: 40px; font-size: 16px; font-family: 'Courier New', Courier, monospace;
-            resize: none; outline: none; background: #ffffff; color: #202124; line-height: 1.6;
-        }
+        .header-title { font-size: 1.4rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+        .nav-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+        .nav-btn { background: var(--bg-body); color: var(--text-muted); border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .nav-btn:hover { background: #e2e8f0; color: var(--text-main); }
+        .nav-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-        /* --- REAL UI --- */
-        #real-ui { display: none; width: 100vw; height: 100vh; }
-
-        /* --- Boss Key Layer --- */
-        #boss-layer {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #fff; color: #202124; z-index: 9999999; display: none;
-            flex-direction: column; align-items: center; font-family: Arial, sans-serif;
-        }
-        #boss-top-nav { display: flex; justify-content: flex-end; padding: 15px 20px; gap: 15px; align-items: center; width: 100%; box-sizing: border-box; font-size: 13px; }
-        #boss-top-nav a { color: #5f6368; text-decoration: none; }
-        .profile-pic { width: 32px; height: 32px; background: #673ab7; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; }
-        .google-logo { font-size: 88px; font-weight: bold; letter-spacing: -3px; margin-top: 10vh; margin-bottom: 25px; }
-        .g-blue { color: #4285f4; } .g-red { color: #ea4335; } .g-yellow { color: #fbbc05; } .g-green { color: #34a853; }
-        .search-container { display: flex; align-items: center; width: 580px; max-width: 90vw; height: 46px; border: 1px solid #dfe1e5; border-radius: 24px; padding: 0 14px; box-sizing: border-box; }
-        .search-container input { flex: 1; border: none; outline: none; font-size: 16px; padding: 0 10px; }
-        .boss-buttons { display: flex; gap: 12px; margin-top: 25px; }
-        .boss-buttons button { background: #f8f9fa; border: 1px solid #f8f9fa; padding: 0 16px; height: 36px; border-radius: 4px; color: #3c4043; cursor: pointer; }
+        /* --- Main Layout --- */
+        #app-container { display: flex; flex: 1; overflow: hidden; }
 
         /* --- Sidebar UI --- */
-        #sidebar { width: 320px; background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; box-sizing: border-box; z-index: 10; }
-        #sidebar.hidden { display: none; }
-        .sidebar-header { padding: 18px; border-bottom: 1px solid var(--border); }
-        .sidebar-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .sidebar-title-row h2 { margin: 0; font-size: 1.25rem; color: var(--accent); font-weight: 600; }
+        #sidebar { width: 280px; background: var(--bg-sidebar); color: var(--text-sidebar); display: flex; flex-direction: column; z-index: 10; transition: width 0.3s; box-shadow: 2px 0 8px rgba(0,0,0,0.1); }
+        #sidebar.hidden { width: 0; overflow: hidden; }
+        .sidebar-header { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
         
-        .key-input { width: 100%; padding: 10px; border-radius: var(--btn-radius); border: 1px solid var(--border); background: var(--bg-console); color: white; margin-bottom: 12px; box-sizing: border-box; outline: none; }
+        .btn { background: var(--accent); color: white; border: none; padding: 8px 12px; border-radius: var(--btn-radius); font-size: 0.85rem; font-weight: bold; width: 100%; cursor: pointer; margin-bottom: 8px; display: flex; justify-content: center; gap: 6px; transition: 0.2s; }
+        .btn:hover { filter: brightness(1.1); }
+        .btn-secondary { background: #334155; border: 1px solid #475569; }
+        .btn-turbo { background: #fbbc05; color: #000; display: none; }
         
-        .btn { border: 1px solid var(--border); color: #18191a; background-color: var(--accent); padding: 9px 12px; border-radius: var(--btn-radius); font-size: 0.85rem; font-weight: 600; width: 100%; cursor: pointer; box-sizing: border-box; text-align: center; margin-bottom: 8px; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .btn-secondary { background-color: #383b3e; color: white; border: 1px solid #484b4e; }
-        .btn-green { background-color: var(--success); }
-        .btn-turbo { background-color: var(--warning); color: #000; border: none; display: none; }
-        .btn-turbo:hover { filter: brightness(1.1); }
+        /* Search Bar */
+        .search-wrapper { margin-bottom: 10px; }
+        .search-wrapper input { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff; box-sizing: border-box; outline: none; font-size: 0.85rem; }
+        .search-wrapper input:focus { border-color: var(--accent); }
 
-        .upload-btn-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; }
-        .upload-btn-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; }
-        #upload-status { font-size: 0.8rem; color: var(--success); margin-bottom: 8px; font-weight: bold; text-align: center; }
+        /* File Tree */
+        #file-tree { flex: 1; overflow-y: auto; padding: 10px; list-style: none; margin: 0; }
+        .folder-group { margin-bottom: 12px; }
+        .folder-title { font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #94a3b8; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 6px; }
+        .file-item { padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; color: #cbd5e1; }
+        .file-item:hover { background: var(--sidebar-hover); color: #fff; }
+        .file-item.active { background: rgba(37, 99, 235, 0.3); color: #fff; font-weight: bold; border-left: 3px solid var(--accent); }
+        .delete-btn { background: none; border: none; color: #64748b; cursor: pointer; display: none; }
+        .file-item:hover .delete-btn { display: block; color: var(--danger); }
 
-        #file-tree { flex: 1; overflow-y: auto; padding: 12px; list-style: none; margin: 0; }
-        .folder-group { margin-bottom: 15px; }
-        .folder-title { font-size: 0.85rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+        /* --- Content Area --- */
+        .content-area { flex: 1; overflow-y: auto; padding: 30px; display: flex; justify-content: center; align-items: flex-start; position: relative; }
+        .section { display: none; width: 100%; max-width: 900px; background: var(--bg-panel); border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); padding: 30px; box-sizing: border-box; flex-direction: column; align-items: center; }
+        .section.active { display: flex; }
+
+        /* Iframe Execution Environment */
+        #execution-layer { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5; }
+        #content-frame { width: 100%; height: 100%; border: none; }
+        .ui-hints { position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.7); padding: 8px 14px; border-radius: 8px; font-size: 0.75rem; color: #fff; text-align: right; pointer-events: none; z-index: 6; }
+
+        /* Input Elements */
+        select, input[type="number"], input[type="text"], textarea { padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 1rem; outline: none; width: 100%; box-sizing: border-box; }
         
-        .file-item { padding: 8px 12px; border-radius: var(--btn-radius); cursor: pointer; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid transparent; }
-        .file-item:hover { background: rgba(255, 255, 255, 0.05); }
-        .file-item.active { background: rgba(126, 158, 242, 0.15); color: var(--accent); border-color: var(--accent); }
-        .action-btns { display: none; gap: 4px; }
-        .action-btns button { background: none; border: none; cursor: pointer; color: var(--text-muted); }
-        .delete-btn:hover { color: var(--danger); }
-        .file-item:hover .action-btns { display: flex; }
+        /* Module Styles (Math, Calc, Geo, Crypto) */
+        .settings-bar { display: flex; gap: 15px; margin-bottom: 30px; justify-content: center; }
+        .problem-display { font-size: 3rem; font-weight: 800; letter-spacing: 2px; margin: 20px 0; text-align: center; }
+        .history-log { margin-top: 30px; width: 100%; max-width: 500px; background: var(--bg-body); border-radius: 8px; border: 1px solid var(--border); max-height: 200px; overflow-y: auto; }
+        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 400px; margin-top: 20px; }
+        .calc-btn { background: var(--bg-body); border: 1px solid var(--border); padding: 15px; font-size: 1.2rem; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .calc-btn:hover { background: #e2e8f0; }
+        .geo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
+        .crypto-box { background: var(--bg-body); padding: 20px; border-radius: 8px; border: 1px solid var(--border); width: 100%; box-sizing: border-box; margin-bottom: 20px;}
 
-        /* --- Main Content Area --- */
-        #main-area { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
-        #content-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; }
-        #placeholder { color: var(--text-muted); text-align: center; }
-        #content-frame { width: 100%; height: 100%; border: none; display: none; background: #000; }
-        
-        .ui-hints { position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.7); padding: 8px 14px; border-radius: 8px; font-size: 0.75rem; color: var(--text-muted); text-align: right; pointer-events: none; }
+        /* Modals & Boss Key */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 200; justify-content: center; align-items: center; }
+        .modal-content { background: var(--bg-panel); width: 90%; max-width: 450px; padding: 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        #boss-layer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #fff; color: #202124; z-index: 9999999; display: none; flex-direction: column; align-items: center; font-family: Arial, sans-serif; }
+        #boss-top-nav { display: flex; justify-content: flex-end; padding: 15px 20px; gap: 15px; align-items: center; width: 100%; font-size: 13px; }
+        .google-logo { font-size: 88px; font-weight: bold; letter-spacing: -3px; margin-top: 10vh; margin-bottom: 25px; }
+        .search-container { display: flex; align-items: center; width: 580px; max-width: 90vw; height: 46px; border: 1px solid #dfe1e5; border-radius: 24px; padding: 0 14px; }
+        .search-container input { flex: 1; border: none; outline: none; font-size: 16px; padding: 0 10px; }
 
-        /* --- GitHub Modal --- */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 200; justify-content: center; align-items: center; opacity: 0; transition: opacity var(--transition-speed); }
-        .modal-overlay.visible { display: flex; opacity: 1; }
-        .modal-content { background: var(--bg-sidebar); width: 90%; max-width: 500px; max-height: 80%; border: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); transform: translateY(20px); transition: transform var(--transition-speed); }
-        .modal-overlay.visible .modal-content { transform: translateY(0); }
-        .modal-content h2 { margin: 0 0 15px 0; color: var(--accent); }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: var(--text-muted); }
-        .form-group input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #484b4e; background: #161718; color: white; box-sizing: border-box; outline: none; transition: border 0.2s; }
-        .form-group input:focus { border-color: var(--accent); }
-        #gh-sync-status { font-size: 0.85rem; color: var(--accent); margin-top: 10px; text-align: center; min-height: 20px; }
-
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     </style>
 </head>
 <body>
 
-    <!-- LAYER 1: DECOY UI -->
-    <div id="decoy-ui">
-        <div id="decoy-header">Algebra I - Chapter 4 Notes</div>
-        <textarea id="decoy-textarea" placeholder="Start typing equations... (Ex: 2x + 4 = 12)" spellcheck="false"></textarea>
-    </div>
-
-    <!-- LAYER 2: THE REAL APP -->
-    <div id="real-ui">
-        <!-- Boss Key Layer -->
-        <div id="boss-layer">
-            <div id="boss-top-nav"><a href="#">Gmail</a> <a href="#">Images</a> <a href="#" style="font-size: 18px;">⋮</a> <div class="profile-pic">U</div></div>
-            <div class="google-logo"><span class="g-blue">G</span><span class="g-red">o</span><span class="g-yellow">o</span><span class="g-blue">g</span><span class="g-green">l</span><span class="g-red">e</span></div>
-            <div class="search-container"><span style="font-size: 18px; color: #9aa0a6;">🔍</span><input type="text" id="boss-search" autocomplete="off"></div>
-            <div class="boss-buttons"><button onclick="document.getElementById('boss-layer').style.display='none'">Google Search</button><button>I'm Feeling Lucky</button></div>
+    <header>
+        <div class="header-title">📐 Advanced Mathematics Portal</div>
+        <div class="nav-buttons">
+            <button class="nav-btn active" onclick="switchTab('practice', this)">Mental Math</button>
+            <button class="nav-btn" onclick="switchTab('calc', this)">Calculator</button>
+            <button class="nav-btn" onclick="switchTab('geometry', this)">Geometry</button>
+            <button class="nav-btn" onclick="switchTab('binary', this)">Cryptography</button>
         </div>
+    </header>
 
+    <div id="app-container">
+        
+        <!-- SIDEBAR (File System) -->
         <div id="sidebar">
             <div class="sidebar-header">
-                <div class="sidebar-title-row"><h2>System Core</h2></div>
                 <div style="display:flex; gap:8px;">
-                    <button class="btn btn-green" onclick="toggleFullscreen()" style="flex:1; padding:9px 5px;">⛶ Fullscreen</button>
-                    <button class="btn btn-turbo" id="turbo-btn" onclick="launchTurbo()" style="flex:1; padding:9px 5px;" title="Launch in new tab to bypass iframe lag">🚀 Turbo</button>
+                    <button class="btn" onclick="document.getElementById('execution-layer').style.display='none'; document.getElementById('content-frame').src='about:blank';" style="flex:1; background:#475569;">Close App</button>
+                    <button class="btn btn-turbo" id="turbo-btn" onclick="launchTurbo()" style="flex:1;">🚀 Turbo</button>
                 </div>
                 
-                <div id="upload-status"></div>
+                <div class="search-wrapper">
+                    <input type="text" id="tree-search" placeholder="Search files..." onkeyup="filterTree()">
+                </div>
                 
-                <div class="upload-btn-wrapper"><button class="btn">📁 Import Directory</button><input type="file" id="dir-upload" webkitdirectory directory multiple /></div>
-                <div class="upload-btn-wrapper"><button class="btn btn-secondary" style="border: 1px dashed #666; background: transparent;">📄 Import ROM/HTML</button><input type="file" id="file-upload" accept=".html,.htm,.enc,.bin" /></div>
-                <button class="btn btn-secondary" onclick="openModal('github-modal')" style="margin-top: 8px;">🐙 Sync GitHub Repo</button>
+                <button class="btn btn-secondary" onclick="openModal('github-modal')">☁️ Sync GitHub Repo</button>
+                
+                <!-- Local Uploads -->
+                <div style="position:relative; overflow:hidden; margin-top:8px;">
+                    <button class="btn btn-secondary" style="background:transparent; border-style:dashed;">📄 Import Local HTML</button>
+                    <input type="file" id="file-upload" accept=".html,.htm" style="position:absolute; top:0; left:0; font-size:50px; opacity:0; cursor:pointer;" />
+                </div>
             </div>
             <ul id="file-tree"></ul>
         </div>
 
-        <div id="main-area">
-            <div id="content-wrapper">
-                <div id="placeholder"><h3>System Standby</h3><p>Import a payload to execute.</p></div>
-                <!-- Native AllowFullscreen flags added to prevent scale crushing -->
-                <iframe id="content-frame" allow="cross-origin-isolated; autoplay; pointer-lock; keyboard; fullscreen; gamepad; display-capture" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
-                <div class="ui-hints"><strong>~ / `</strong> Google Cloak<br><strong>J</strong> Toggle Sidebar<br><strong>Alt + W</strong> Panic Wipe</div>
+        <!-- MAIN CONTENT AREA -->
+        <div class="content-area">
+            
+            <!-- SECTION: PRACTICE -->
+            <div id="sec-practice" class="section active">
+                <h2>Mental Math Blitz</h2>
+                <div class="settings-bar">
+                    <select id="math-op" style="width:auto;"><option value="add">+</option><option value="sub">-</option><option value="mult" selected>×</option><option value="div">÷</option></select>
+                    <select id="math-diff" style="width:auto;"><option value="easy">Easy</option><option value="med" selected>Medium</option></select>
+                    <button class="btn" style="width:auto; padding: 10px 20px;" onclick="startMathTest()">Start</button>
+                </div>
+                <div class="problem-display" id="problem-text">Press Start</div>
+                <input type="number" id="math-answer" placeholder="?" disabled style="font-size: 2rem; text-align: center; width: 150px; font-weight: bold;" onkeydown="if(event.key==='Enter') submitAnswer()">
+                <div class="history-log" id="math-history"></div>
             </div>
+
+            <!-- SECTION: CALCULATOR -->
+            <div id="sec-calc" class="section">
+                <h2>Standard Calculator</h2>
+                <input type="text" id="calc-display" disabled value="0" style="font-size: 2rem; text-align: right; max-width:400px; background:var(--bg-body);">
+                <div class="calc-grid">
+                    <button class="calc-btn" style="background:#cbd5e1;" onclick="calcInput('c')">C</button>
+                    <button class="calc-btn" style="background:#cbd5e1;" onclick="calcInput('(')">(</button>
+                    <button class="calc-btn" style="background:#cbd5e1;" onclick="calcInput(')')">)</button>
+                    <button class="calc-btn" style="background:#cbd5e1;" onclick="calcInput('/')">÷</button>
+                    <button class="calc-btn" onclick="calcInput('7')">7</button><button class="calc-btn" onclick="calcInput('8')">8</button><button class="calc-btn" onclick="calcInput('9')">9</button>
+                    <button class="calc-btn" style="background:#cbd5e1;" onclick="calcInput('*')">×</button>
+                    <button class="calc-btn" onclick="calcInput('4')">4</button><button class="calc-btn" onclick="calcInput('5')">5</button><button class="calc-btn" onclick="calcInput('6')">6</button>
+                    <button class="calc-btn" style="background:#cbd5e1;" onclick="calcInput('-')">-</button>
+                    <button class="calc-btn" onclick="calcInput('1')">1</button><button class="calc-btn" onclick="calcInput('2')">2</button><button class="calc-btn" onclick="calcInput('3')">3</button>
+                    <button class="calc-btn" style="background:#cbd5e1;" onclick="calcInput('+')">+</button>
+                    <button class="calc-btn" onclick="calcInput('0')">0</button><button class="calc-btn" onclick="calcInput('.')">.</button>
+                    <button class="calc-btn" style="background:var(--accent); color:#fff; grid-column:span 2;" onclick="calcInput('=')">=</button>
+                </div>
+            </div>
+
+            <!-- SECTION: GEOMETRY -->
+            <div id="sec-geometry" class="section">
+                <h2>Spatial Geometry</h2>
+                <div class="geo-grid">
+                    <div class="crypto-box">
+                        <h3>Pythagorean (a² + b² = c²)</h3>
+                        <input type="number" id="pyth-a" placeholder="Leg A" style="margin-bottom:8px;">
+                        <input type="number" id="pyth-b" placeholder="Leg B" style="margin-bottom:8px;">
+                        <button class="btn" onclick="calcPythagorean()">Solve C</button>
+                        <div id="pyth-out" style="margin-top:10px; font-weight:bold; color:var(--accent);"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: CRYPTOGRAPHY (PAYLOAD GEN) -->
+            <div id="sec-binary" class="section">
+                <h2>Cryptography Toolkit</h2>
+                <div class="crypto-box">
+                    <h3>AES Payload Generator</h3>
+                    <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:15px;">Encrypt a link or string into a Base64 payload block.</p>
+                    <input type="text" id="raw-msg" placeholder="Enter message or URL..." style="margin-bottom:15px;">
+                    <button class="btn" onclick="encryptPayload()">Generate Sequence</button>
+                    <textarea id="gen-output" rows="4" readonly placeholder="Encrypted sequence..." style="margin-top:15px; background:#f1f5f9;"></textarea>
+                </div>
+            </div>
+
+            <!-- FULLSCREEN EXECUTION LAYER -->
+            <div id="execution-layer">
+                <iframe id="content-frame" allow="cross-origin-isolated; autoplay; pointer-lock; keyboard; fullscreen; gamepad" allowfullscreen="true"></iframe>
+                <div class="ui-hints"><strong>~ / `</strong> Google Cloak <br> <strong>J</strong> Toggle Menu</div>
+            </div>
+
         </div>
     </div>
 
-    <!-- GitHub Sync Modal -->
+    <!-- Modals & Cloaks -->
+    <div id="boss-layer">
+        <div id="boss-top-nav"><a href="#">Gmail</a> <a href="#">Images</a></div>
+        <div class="google-logo"><span class="g-blue">G</span><span class="g-red">o</span><span class="g-yellow">o</span><span class="g-blue">g</span><span class="g-green">l</span><span class="g-red">e</span></div>
+        <div class="search-container"><span style="font-size: 18px; color: #9aa0a6;">🔍</span><input type="text" autocomplete="off"></div>
+    </div>
+
     <div id="github-modal" class="modal-overlay">
         <div class="modal-content">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2>🐙 Sync Cloud Repo</h2>
-                <button class="btn btn-secondary" style="width:auto; margin:0; padding: 4px 10px;" onclick="closeModal('github-modal')">✕</button>
-            </div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0;">Pull environments directly from a public repository.</p>
-            
-            <div class="form-group">
-                <label>Repository</label>
-                <input type="text" id="gh-repo-input" value="YourFavoriteTeacherDan/StudyingTool" placeholder="username/repo" autocomplete="off">
-            </div>
-            <div class="form-group">
-                <label>Branch (default: main)</label>
-                <input type="text" id="gh-branch-input" placeholder="main" value="main" autocomplete="off">
-            </div>
-            
-            <button class="btn" onclick="syncGitHubRepo()" id="gh-sync-btn">⬇️ Start Sync</button>
-            <div id="gh-sync-status"></div>
+            <h2 style="margin-top:0; color:var(--accent);">☁️ Fast Cloud Sync</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Instantly skims the repository and sets up direct streaming links. Zero download wait.</p>
+            <input type="text" id="gh-repo-input" value="YourFavoriteTeacherDan/StudyingTool" placeholder="username/repo" style="margin-bottom:10px;">
+            <input type="text" id="gh-branch-input" placeholder="Branch (default: main)" value="main" style="margin-bottom:15px;">
+            <button class="btn" onclick="syncGitHubRepo()" id="gh-sync-btn">Scan Repository</button>
+            <div id="gh-sync-status" style="text-align:center; margin-top:10px; font-weight:bold;"></div>
+            <button class="btn btn-secondary" style="margin-top:10px; width:100%;" onclick="closeModal('github-modal')">Cancel</button>
         </div>
     </div>
 
     <script>
-        // --- 1. ANTI-INSPECTION & STEALTH LOGIC ---
+        // --- 1. CORE VARIABLES & STEALTH ---
+        const SECRET_KEY = "gulo";
+        let _db = null; const _fS = "virtual_files";
+        let _cloudCache = []; // Stores skimmed github files
+        let _activeTurboURL = null; 
+        let _activeTurboHTML = null;
+
         document.addEventListener('contextmenu', e => e.preventDefault());
-        document.addEventListener('keydown', e => {
-            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'u')) e.preventDefault();
-        });
-
-        // Tab Blur Disguise
+        document.addEventListener('keydown', e => { if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) e.preventDefault(); });
         document.addEventListener("visibilitychange", () => {
-            const title = document.getElementById('page-title');
-            const icon = document.getElementById('page-icon');
-            if (document.hidden) {
-                title.innerText = "Untitled document - Google Docs";
-                icon.href = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%234285F4'/><rect x='20' y='20' width='60' height='10' fill='white'/><rect x='20' y='40' width='60' height='10' fill='white'/><rect x='20' y='60' width='40' height='10' fill='white'/></svg>";
-            } else {
-                title.innerText = "Algebra Notes";
-                icon.href = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='black'>√</text></svg>";
-            }
+            document.title = document.hidden ? "Untitled document - Google Docs" : "Advanced Mathematics & Logic Portal";
         });
 
-        // --- 2. GHOST TRIGGER (THE LOCK) ---
+        // Tab Switching
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('sec-' + tabId).classList.add('active');
+            btn.classList.add('active');
+        }
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        // --- 2. GHOST KEYLOGGER (MASTER LAUNCHER) ---
         let keyBuffer = "";
-        const triggerWord = "gulo"; 
-        
-        window.addEventListener("keydown", (e) => {
-            let isTyping = (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable);
+        window.addEventListener('keydown', (e) => {
+            let isTyping = (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA');
             
+            // Boss Key
             if (e.key === '`' || e.key === '~') {
                 const boss = document.getElementById('boss-layer');
                 boss.style.display = boss.style.display === 'flex' ? 'none' : 'flex';
                 return;
             }
 
+            // Toggle Sidebar when app is running
+            if (e.key.toLowerCase() === 'j' && !isTyping) {
+                const sb = document.getElementById('sidebar');
+                sb.classList.toggle('hidden');
+            }
+
+            // Gulo Bypass
             if (e.key.length === 1 && !isTyping) {
                 keyBuffer += e.key.toLowerCase();
                 if (keyBuffer.length > 10) keyBuffer = keyBuffer.slice(-10);
-                
-                // Unlock Decoy UI -> Real UI
-                if (keyBuffer.includes(triggerWord) && document.getElementById('decoy-ui').style.display !== 'none') {
-                    document.getElementById('decoy-ui').style.display = 'none';
-                    document.getElementById('real-ui').style.display = 'flex';
-                    keyBuffer = ""; 
-                    return;
-                }
 
-                // If Already Unlocked, open Payload Launcher
-                if (keyBuffer.includes(triggerWord) && document.getElementById('real-ui').style.display === 'flex') {
-                    keyBuffer = "";
+                if (keyBuffer.endsWith("gulo")) {
+                    keyBuffer = ""; 
                     setTimeout(() => {
                         let enc = prompt("Enter sequence:");
                         if (enc) performDecryption(enc);
                     }, 50);
                 }
             }
-
-            // Real UI Hotkeys
-            if (document.getElementById('real-ui').style.display === 'flex' && !isTyping) {
-                if (e.key.toLowerCase() === 'j') {
-                    const sb = document.getElementById('sidebar');
-                    sb.style.display = sb.style.display === 'none' ? 'flex' : 'none';
-                }
-                if (e.altKey && e.key.toLowerCase() === 'w') {
-                    if(confirm("EMERGENCY: Wipe all data?")) {
-                        indexedDB.deleteDatabase("StudyEnvDB");
-                        location.reload();
-                    }
-                }
-            }
         });
 
-        // --- 3. PAYLOAD EXECUTOR ---
-        const SECRET_KEY = "gulo";
-
+        // --- 3. CRYPTOGRAPHY ENGINE ---
         function xorEngine(input, key) {
-            let output = '';
-            for (let i = 0; i < input.length; i++) output += String.fromCharCode(input.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-            return output;
+            let out = '';
+            for (let i = 0; i < input.length; i++) out += String.fromCharCode(input.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+            return out;
+        }
+        function encryptPayload() {
+            const raw = document.getElementById('raw-msg').value.trim();
+            if(!raw) return;
+            document.getElementById('gen-output').value = btoa(xorEngine(raw, SECRET_KEY));
         }
 
+        // Invisible executor
         function performDecryption(payload) {
             try {
                 let decrypted = xorEngine(atob(payload), SECRET_KEY).trim();
                 let isHTML = decrypted.startsWith('<');
                 
                 let win = window.open('about:blank', '_blank');
-                if(!win) { alert("Popup blocked! Please allow popups for this site."); return; }
+                if(!win) return alert("Popup blocked! Allow popups to launch."); 
 
                 if (isHTML) {
                     win.document.write(decrypted);
                 } else {
                     let url = decrypted;
                     if (!url.startsWith('http') && !url.startsWith('//') && !url.startsWith('data:')) url = 'https://' + url;
-                    
-                    win.document.write(`
-                        <!DOCTYPE html><html><head><title>Desmos | Graphing Calculator</title>
-                        <link rel="icon" href="https://www.desmos.com/favicon.ico">
-                        <style>body,html{margin:0;padding:0;height:100%;overflow:hidden;background:#000;}iframe{width:100vw;height:100vh;border:none;display:block;}</style>
-                        </head><body><iframe src="${url}" allow="fullscreen; autoplay; gamepad; pointer-lock"></iframe></body></html>
-                    `);
+                    win.document.write(`<!DOCTYPE html><html><head><title>Desmos Calculator</title><style>body,html{margin:0;padding:0;height:100%;overflow:hidden;}iframe{width:100vw;height:100vh;border:none;}</style></head><body><iframe src="${url}"></iframe></body></html>`);
                 }
                 win.document.close();
                 window.location.replace("https://www.khanacademy.org/"); 
-                
-            } catch (err) { alert("Decryption failed. Invalid sequence."); }
+            } catch (err) { alert("Invalid sequence."); }
         }
 
-        // --- 4. VIRTUAL FILE SYSTEM & GITHUB SYNC ---
-        let _db=null; const _dN="StudyEnvDB", _fS="virtual_files";
-        const _cF=document.getElementById('content-frame'), _pH=document.getElementById('placeholder');
-        const _fT=document.getElementById('file-tree'), _sT=document.getElementById('upload-status');
-        let _activeTurboHTML = ""; 
+        // --- 4. GITHUB SKIMMER & VIRTUAL FILE SYSTEM ---
+        const _req = indexedDB.open(_dN, 1);
+        _req.onupgradeneeded = e => { _db=e.target.result; _db.createObjectStore(_fS,{keyPath:"path"}); };
+        _req.onsuccess = e => { _db=e.target.result; renderFileTree(); };
 
-        const _req=indexedDB.open(_dN, 3);
-        _req.onupgradeneeded=e=>{ _db=e.target.result; if(!_db.objectStoreNames.contains(_fS)) _db.createObjectStore(_fS,{keyPath:"path"}); };
-        _req.onsuccess=e=>{ _db=e.target.result; _rFT(); };
+        // Local Uploads (HTML only)
+        document.getElementById('file-upload').addEventListener('change', e => {
+            if(!_db || e.target.files.length === 0) return;
+            let f = e.target.files[0];
+            const tx = _db.transaction([_fS], "readwrite");
+            tx.objectStore(_fS).put({ path: "Local/" + f.name, name: f.name, blob: new Blob([f],{type:f.type}) });
+            tx.oncomplete = () => renderFileTree();
+        });
 
-        document.getElementById('file-upload').addEventListener('change',e=>_hU(e.target.files,false));
-        document.getElementById('dir-upload').addEventListener('change',e=>_hU(e.target.files,true));
-
-        function openModal(id) { const m = document.getElementById(id); m.style.display = 'flex'; setTimeout(() => m.classList.add('visible'), 10); }
-        function closeModal(id) { const m = document.getElementById(id); m.classList.remove('visible'); setTimeout(() => m.style.display = 'none', 200); }
-
+        // Fast GitHub Skimmer
         async function syncGitHubRepo() {
-            if (!_db) return;
-            const repoInput = document.getElementById('gh-repo-input').value.trim();
-            const branchInput = document.getElementById('gh-branch-input').value.trim() || 'main';
+            const repo = document.getElementById('gh-repo-input').value.trim();
+            const branch = document.getElementById('gh-branch-input').value.trim() || 'main';
             const statusBox = document.getElementById('gh-sync-status');
-            const btn = document.getElementById('gh-sync-btn');
             
-            if (!repoInput.includes('/')) { statusBox.textContent = "Error: Use 'username/repository'."; statusBox.style.color = "var(--danger)"; return; }
-
-            btn.disabled = true; btn.style.opacity = '0.5';
-            statusBox.style.color = "var(--accent)"; statusBox.textContent = "Fetching repository tree...";
-
+            if(!repo.includes('/')) return statusBox.textContent = "Format: User/Repo";
+            statusBox.style.color = "var(--accent)"; statusBox.textContent = "Skimming tree...";
+            
             try {
-                const apiURL = `https://api.github.com/repos/${repoInput}/git/trees/${branchInput}?recursive=1`;
-                const treeRes = await fetch(apiURL);
-                if (!treeRes.ok) throw new Error("Repository not found or API rate limited.");
+                const res = await fetch(`https://api.github.com/repos/${repo}/git/trees/${branch}?recursive=1`);
+                if(!res.ok) throw new Error("Repo not found.");
                 
-                const treeData = await treeRes.json();
-                const files = treeData.tree.filter(f => f.type === 'blob');
-                if (files.length === 0) throw new Error("No files found in this branch.");
-
-                let downloaded = 0; const batchSize = 10;
-                for (let i = 0; i < files.length; i += batchSize) {
-                    const batch = files.slice(i, i + batchSize);
-                    await Promise.all(batch.map(async (file) => {
-                        const rawUrl = `https://raw.githubusercontent.com/${repoInput}/${branchInput}/${file.path}`;
-                        try {
-                            const fileRes = await fetch(rawUrl);
-                            if (fileRes.ok) {
-                                const blob = await fileRes.blob();
-                                await new Promise(resolve => {
-                                    const tx = _db.transaction([_fS], "readwrite");
-                                    tx.objectStore(_fS).put({ path: `${repoInput.split('/')[1]}/${file.path}`, name: file.path.split('/').pop(), blob: blob });
-                                    tx.oncomplete = resolve;
-                                });
-                            }
-                        } catch(e) {}
-                        downloaded++; statusBox.textContent = `Downloading ${downloaded} / ${files.length} ...`;
-                    }));
-                }
-                statusBox.style.color = "var(--success)"; statusBox.textContent = `Successfully synced ${downloaded} files!`;
-                _rFT();
-                setTimeout(() => { closeModal('github-modal'); statusBox.textContent = ''; btn.disabled = false; btn.style.opacity = '1'; }, 1500);
-            } catch (err) {
-                statusBox.style.color = "var(--danger)"; statusBox.textContent = err.message;
-                btn.disabled = false; btn.style.opacity = '1';
-            }
+                const data = await res.json();
+                // Extract only HTML files
+                _cloudCache = data.tree.filter(f => f.type === 'blob' && (f.path.endsWith('.html') || f.path.endsWith('.htm')))
+                                       .map(f => ({ path: f.path, name: f.path.split('/').pop(), repo: repo, branch: branch }));
+                
+                statusBox.style.color = "var(--success)"; statusBox.textContent = `Indexed ${_cloudCache.length} apps!`;
+                renderFileTree();
+                setTimeout(() => { closeModal('github-modal'); statusBox.textContent=''; }, 1000);
+            } catch (err) { statusBox.style.color = "var(--danger)"; statusBox.textContent = "Sync failed."; }
         }
 
-        function _hU(f,isD){
-            if(!_db||f.length===0)return;
-            let c=0, t=f.length, b=50;
-            function _p(){
-                const tx=_db.transaction([_fS],"readwrite"), st=tx.objectStore(_fS);
-                let end=Math.min(c+b,t);
-                for(let i=c; i<end; i++){
-                    let p=(isD&&f[i].webkitRelativePath)?f[i].webkitRelativePath:f[i].name;
-                    if(!p.includes('.DS_Store')) st.put({path:p, name:f[i].name, blob:new Blob([f[i]],{type:f[i].type})});
-                }
-                tx.oncomplete=()=>{ c=end; _sT.textContent=`Cached ${c}/${t}`; if(c<t) requestAnimationFrame(_p); else{ setTimeout(()=>_sT.textContent="",2000); _rFT(); } };
-            }
-            _p();
+        // Tree Renderer & Search
+        function filterTree() {
+            let q = document.getElementById('tree-search').value.toLowerCase();
+            document.querySelectorAll('.file-item').forEach(li => {
+                li.style.display = li.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
+            });
+            document.querySelectorAll('.folder-group').forEach(fg => {
+                let vis = Array.from(fg.querySelectorAll('.file-item')).some(li => li.style.display !== 'none');
+                fg.style.display = vis ? 'block' : 'none';
+            });
         }
 
-        function _rFT(){
-            _fT.innerHTML=""; if(!_db)return;
-            _db.transaction([_fS],"readonly").objectStore(_fS).getAll().onsuccess=e=>{
-                const aF=e.target.result, lF=aF.filter(f=>f.name.endsWith('.html')||f.name.endsWith('.htm'));
-                if(lF.length===0)return;
-                let fd={}; lF.forEach(f=>{ let p=f.path.split('/'), n=p.length>1?p[0]:"Root"; if(!fd[n])fd[n]=[]; fd[n].push(f); });
-                Object.keys(fd).sort().forEach(n=>{
-                    let d=document.createElement('div'); d.className='folder-group';
-                    d.innerHTML=`<div class="folder-title">${n}</div><div class="fc"></div>`;
-                    fd[n].forEach(f=>{
-                        let li=document.createElement('li'); li.className='file-item';
-                        li.innerHTML=`<span>📄 ${f.name}</span><button class="action-btns delete-btn">✕</button>`;
-                        li.onclick=(ev)=>{
-                            if(ev.target.tagName==='BUTTON'){ _db.transaction([_fS],"readwrite").objectStore(_fS).delete(f.path).oncomplete=_rFT; return; }
-                            _lVC(f.path,aF);
-                        };
-                        d.querySelector('.fc').appendChild(li);
-                    });
-                    _fT.appendChild(d);
+        function renderFileTree() {
+            const tree = document.getElementById('file-tree');
+            tree.innerHTML = "";
+
+            // Grouping function
+            const createGroup = (title, items, isCloud) => {
+                if(items.length === 0) return;
+                let d = document.createElement('div'); d.className = 'folder-group';
+                d.innerHTML = `<div class="folder-title">${title}</div><div class="fc"></div>`;
+                
+                items.forEach(f => {
+                    let li = document.createElement('li'); li.className = 'file-item';
+                    li.innerHTML = `<span>${f.name}</span> <button class="delete-btn">${isCloud ? '↗' : '✕'}</button>`;
+                    li.onclick = (ev) => {
+                        // Delete logic for local
+                        if(ev.target.tagName === 'BUTTON' && !isCloud) {
+                            _db.transaction([_fS],"readwrite").objectStore(_fS).delete(f.path).oncomplete=renderFileTree; 
+                            return; 
+                        }
+                        
+                        // Active state
+                        document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
+                        li.classList.add('active');
+                        
+                        // Execution
+                        document.getElementById('execution-layer').style.display = 'block';
+                        const turboBtn = document.getElementById('turbo-btn');
+                        
+                        if(isCloud) {
+                            // Instant CDN execution
+                            let url = `https://cdn.jsdelivr.net/gh/${f.repo}@${f.branch}/${f.path}`;
+                            document.getElementById('content-frame').src = url;
+                            _activeTurboURL = url; _activeTurboHTML = null;
+                            turboBtn.style.display = 'flex';
+                        } else {
+                            // Local Blob execution
+                            const r = new FileReader();
+                            r.onload = e => {
+                                let hc = e.target.result;
+                                document.getElementById('content-frame').src = URL.createObjectURL(new Blob([hc],{type:'text/html'}));
+                                _activeTurboHTML = hc; _activeTurboURL = null;
+                                turboBtn.style.display = 'flex';
+                            };
+                            r.readAsText(f.blob);
+                        }
+                    };
+                    d.querySelector('.fc').appendChild(li);
                 });
+                tree.appendChild(d);
             };
-        }
 
-        function _lVC(eP, aF){
-            _pH.style.display='none'; _cF.style.display='block';
-            const vFS={}; aF.forEach(f=>{ vFS[f.path]=URL.createObjectURL(f.blob); });
-            const r=new FileReader();
-            r.onload=function(e){
-                let hc=e.target.result, d=eP.includes('/')?eP.substring(0,eP.lastIndexOf('/')):'';
-                for(const [rP,bU] of Object.entries(vFS)){
-                    let rT=rP; if(d&&rP.startsWith(d+'/')) rT=rP.substring(d.length+1);
-                    hc=hc.replace(new RegExp(`(["'])(./)?${rT.replace(/[-\/\\^$*+?.()|[\]{}]/g,'\\$&')}(["'])`,'g'),`$1${bU}$3`);
-                }
-                
-                _activeTurboHTML = hc; 
-                document.getElementById('turbo-btn').style.display = 'flex';
-                
-                _cF.src=URL.createObjectURL(new Blob([hc],{type:'text/html'}));
-                _cF.onload=()=>_cF.focus();
-            };
-            r.readAsText(aF.find(f=>f.path===eP).blob);
-        }
+            // 1. Render Cloud Files
+            if(_cloudCache.length > 0) createGroup("☁️ Cloud Apps", _cloudCache, true);
 
-        function toggleFullscreen() { 
-            const cw = document.getElementById('content-wrapper');
-            if(!document.fullscreenElement) cw.requestFullscreen(); else document.exitFullscreen(); 
+            // 2. Render Local Files
+            if(_db) {
+                _db.transaction([_fS],"readonly").objectStore(_fS).getAll().onsuccess = e => {
+                    createGroup("📁 Local Storage", e.target.result, false);
+                };
+            }
         }
 
         function launchTurbo() {
-            if(!_activeTurboHTML) return;
             let w = window.open('about:blank', '_blank');
-            if(w) {
+            if(!w) return alert("Allow popups for Turbo Mode.");
+            if(_activeTurboURL) {
+                w.document.write(`<!DOCTYPE html><html><head><style>body,html{margin:0;padding:0;height:100%;overflow:hidden;}iframe{width:100vw;height:100vh;border:none;}</style></head><body><iframe src="${_activeTurboURL}" allow="fullscreen; autoplay; gamepad; pointer-lock"></iframe></body></html>`);
+            } else if(_activeTurboHTML) {
                 w.document.write(_activeTurboHTML);
-                w.document.close();
-            } else {
-                alert("Pop-ups must be allowed to launch Turbo Mode.");
             }
+            w.document.close();
         }
+
+        // --- MATH MODULES (Simplified Logic) ---
+        function calcInput(char) {
+            const d = document.getElementById('calc-display');
+            if(char === 'c') d.value = '0';
+            else if(char === '=') { try { d.value = eval(d.value); } catch(e) { d.value = 'Error'; } }
+            else { d.value = d.value === '0' ? char : d.value + char; }
+        }
+        function calcPythagorean() {
+            let a = parseFloat(document.getElementById('pyth-a').value), b = parseFloat(document.getElementById('pyth-b').value);
+            document.getElementById('pyth-out').innerText = "C = " + (isNaN(a)||isNaN(b) ? "Invalid" : Math.sqrt((a*a) + (b*b)).toFixed(2));
+        }
+        
     </script>
 </body>
 </html>
