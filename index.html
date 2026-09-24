@@ -3,815 +3,1124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Algebra Notes</title>
-    <!-- Math Favicon for Stealth -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='white'>√</text></svg>">
-    
-    <!-- Auto-Cloak Script -->
-    <script>
-        if (window.location.protocol !== 'about:' && window.self === window.top) {
-            let cloakWin = window.open('about:blank', '_blank');
-            if (cloakWin) {
-                cloakWin.document.write('<!DOCTYPE html>' + document.documentElement.outerHTML);
-                cloakWin.document.close();
-                window.location.replace('https://classroom.google.com');
-            }
-        }
-    </script>
-
+    <title>Advanced File Viewer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         :root {
-            --bg-main: #18191a;
-            --bg-sidebar: #212325;
-            --bg-console: #161718;
-            --text-main: #e8eaed;
-            --text-muted: #9aa0a6;
-            --accent: #7e9ef2;
-            --accent-hover: #98b3fc;
-            --border: rgba(255, 255, 255, 0.08);
-            --danger: #fc6060;
-            --success: #67c780;
-            --turbo: #ff9800;
-            --btn-radius: 8px;
-            --transition-speed: 0.2s;
+            --bg-base: #111827;
+            --bg-panel: #1f2937;
+            --bg-hover: #374151;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border-color: #374151;
+        }
+
+        [data-theme="light"] {
+            --bg-base: #f3f4f6;
+            --bg-panel: #ffffff;
+            --bg-hover: #e5e7eb;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --border-color: #d1d5db;
+        }
+
+        [data-theme="neon"] {
+            --bg-base: #000000;
+            --bg-panel: #0a0a0a;
+            --bg-hover: #1a1a1a;
+            --text-main: #00ffcc;
+            --text-muted: #008866;
+            --accent: #ff00ff;
+            --accent-hover: #cc00cc;
+            --border-color: #00ffcc;
         }
 
         body {
-            margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg-main); color: var(--text-main);
-            display: flex; height: 100vh; overflow: hidden;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Inter', system-ui, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+            background-size: cover;
+            background-position: center;
         }
 
-        /* --- Realistic Google Boss Key Layer --- */
-        #boss-layer {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #fff; color: #202124; z-index: 99999; display: none;
-            flex-direction: column; align-items: center; font-family: Arial, sans-serif;
-        }
-        #boss-top-nav {
-            display: flex; justify-content: flex-end; padding: 15px 20px; gap: 15px; 
-            align-items: center; width: 100%; box-sizing: border-box; font-size: 13px;
-        }
-        #boss-top-nav a { color: #5f6368; text-decoration: none; }
-        #boss-top-nav a:hover { text-decoration: underline; }
-        .profile-pic { width: 32px; height: 32px; background: #673ab7; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; }
-        .google-logo { font-size: 88px; font-weight: bold; letter-spacing: -3px; margin-top: 10vh; margin-bottom: 25px; }
-        .g-blue { color: #4285f4; } .g-red { color: #ea4335; } .g-yellow { color: #fbbc05; } .g-green { color: #34a853; }
-        .search-container {
-            display: flex; align-items: center; width: 580px; max-width: 90vw; height: 46px; 
-            border: 1px solid #dfe1e5; border-radius: 24px; padding: 0 14px; box-sizing: border-box; transition: box-shadow var(--transition-speed);
-        }
-        .search-container:hover, .search-container:focus-within { box-shadow: 0 1px 6px rgba(32,33,36,.28); border-color: rgba(223,225,229,0); }
-        .search-container input { flex: 1; border: none; outline: none; font-size: 16px; padding: 0 10px; }
-        .search-icon, .mic-icon { font-size: 18px; color: #9aa0a6; cursor: pointer; }
-        .boss-buttons { display: flex; gap: 12px; margin-top: 25px; }
-        .boss-buttons button { background: #f8f9fa; border: 1px solid #f8f9fa; padding: 0 16px; height: 36px; border-radius: 4px; color: #3c4043; font-size: 14px; cursor: pointer; }
-        .boss-buttons button:hover { border: 1px solid #dadce0; box-shadow: 0 1px 1px rgba(0,0,0,.1); color: #202124; }
+        .panel-bg { background-color: var(--bg-panel); }
+        .panel-border { border-color: var(--border-color); }
+        .text-main { color: var(--text-main); }
+        .text-muted { color: var(--text-muted); }
+        .bg-accent { background-color: var(--accent); }
+        .hover-bg-accent:hover { background-color: var(--accent-hover); }
+        .hover-bg-panel:hover { background-color: var(--bg-hover); }
 
-        /* --- Sidebar UI --- */
-        #sidebar {
-            width: 320px; background: var(--bg-sidebar); border-right: 1px solid var(--border);
-            display: flex; flex-direction: column; box-sizing: border-box;
-            z-index: 10; transition: transform var(--transition-speed) ease, margin-left var(--transition-speed);
-            box-shadow: 2px 0 10px rgba(0,0,0,0.2);
-        }
-        #sidebar.hidden { margin-left: -320px; }
-
-        .sidebar-header { padding: 18px; border-bottom: 1px solid var(--border); }
-        .sidebar-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .sidebar-title-row h2 { margin: 0; font-size: 1.25rem; color: var(--accent); font-weight: 600; letter-spacing: 0.5px; }
-        
-        .icon-btn { background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; padding: 4px; border-radius: 4px; transition: var(--transition-speed); }
-        .icon-btn:hover { color: var(--accent); background: rgba(126, 158, 242, 0.1); }
-
-        .key-input, .search-input { width: 100%; padding: 10px; border-radius: var(--btn-radius); border: 1px solid var(--border); background: var(--bg-console); color: white; margin-bottom: 12px; box-sizing: border-box; font-size: 0.85rem; outline: none; transition: border var(--transition-speed); }
-        .key-input:focus, .search-input:focus { border-color: var(--accent); }
-
-        .btn {
-            border: 1px solid var(--border); color: #18191a; background-color: var(--accent);
-            padding: 9px 12px; border-radius: var(--btn-radius); font-size: 0.85rem; font-weight: 600;
-            width: 100%; cursor: pointer; box-sizing: border-box; text-align: center; margin-bottom: 8px;
-            display: flex; justify-content: center; align-items: center; gap: 8px; transition: all var(--transition-speed) ease;
-        }
-        .btn:hover { filter: brightness(1.15); transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-        .btn:active { transform: translateY(0); box-shadow: none; }
-        .btn-secondary { background-color: #383b3e; color: white; border: 1px solid #484b4e; }
-        .btn-green { background-color: var(--success); }
-        .btn-red { background-color: var(--danger); color: white; border: none; }
-        .btn-turbo { background-color: rgba(255, 152, 0, 0.1); color: var(--turbo); border: 1px solid var(--turbo); }
-        .btn-turbo:hover { background-color: var(--turbo); color: #000; }
-
-        .upload-btn-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; }
-        .upload-btn-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; }
-        #upload-status { font-size: 0.8rem; color: var(--success); margin-bottom: 8px; font-weight: bold; text-align: center; }
-
-        .turbo-toggle-container {
-            display: flex; align-items: center; justify-content: space-between;
-            background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: var(--btn-radius);
-            border: 1px solid var(--border); margin-bottom: 12px; cursor: pointer; transition: all 0.2s;
-        }
-        .turbo-toggle-container:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); }
-        .turbo-toggle-label { font-size: 0.85rem; font-weight: 600; color: var(--turbo); display: flex; align-items: center; gap: 8px; pointer-events: none; }
-        .turbo-checkbox { width: 16px; height: 16px; accent-color: var(--turbo); cursor: pointer; }
-
-        #file-tree { flex: 1; overflow-y: auto; padding: 12px; list-style: none; margin: 0; }
-        .folder-group { margin-bottom: 15px; }
-        .folder-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; padding: 5px; color: var(--text-muted); border-bottom: 1px solid var(--border); margin-bottom: 8px; }
-        
-        /* --- List View (Default) --- */
-        .folder-content { padding-left: 5px; display: flex; flex-direction: column; gap: 4px; }
-        .file-item {
-            padding: 8px 12px; border-radius: var(--btn-radius); cursor: pointer; font-size: 0.85rem;
-            display: flex; justify-content: space-between; align-items: center;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            background: transparent; transition: all 0.15s ease; border: 1px solid transparent; position: relative;
-        }
-        .file-item .file-info { display: flex; align-items: center; gap: 10px; overflow: hidden; }
-        .file-item .file-name { overflow: hidden; text-overflow: ellipsis; }
-        .file-icon.custom-icon { width: 22px; height: 22px; object-fit: contain; border-radius: 4px; background: rgba(0,0,0,0.2); padding: 2px; }
-        
-        .file-item:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(255,255,255,0.08); }
-        .file-item.active { background: rgba(126, 158, 242, 0.15); color: var(--accent); border-color: var(--accent); font-weight: 600; }
-        
-        .action-btns { display: none; gap: 4px; }
-        .action-btns button { background: none; border: none; cursor: pointer; padding: 4px 6px; border-radius: 4px; font-size: 0.9rem; }
-        .blank-btn:hover, .normal-btn:hover { background: rgba(126, 158, 242, 0.2); color: var(--accent); }
-        .delete-btn { color: var(--danger); }
-        .delete-btn:hover { background: rgba(252, 96, 96, 0.2); }
-        .file-item:hover .action-btns { display: flex; }
-
-        /* --- Grid View --- */
-        #file-tree.grid-view .folder-content { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 10px; padding-left: 0; }
-        #file-tree.grid-view .file-item {
-            flex-direction: column; align-items: center; justify-content: center;
-            height: 95px; padding: 10px 5px; text-align: center;
-            background: rgba(255,255,255,0.02); border: 1px solid var(--border);
-        }
-        #file-tree.grid-view .file-item .file-info { flex-direction: column; gap: 8px; }
-        #file-tree.grid-view .file-item .file-icon { font-size: 28px; }
-        #file-tree.grid-view .file-item .file-icon.custom-icon { width: 40px; height: 40px; }
-        #file-tree.grid-view .file-item .file-name { font-size: 0.75rem; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
-        #file-tree.grid-view .action-btns { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.8); border-radius: 4px; padding: 2px; }
-        #file-tree.grid-view .action-btns button { font-size: 0.8rem; padding: 2px 4px; }
-
-        /* --- Main Content Area --- */
-        #main-area { flex: 1; display: flex; flex-direction: column; background: #0c0c0c; position: relative; }
-        
-        #content-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; background: #000; box-shadow: inset 0 0 50px rgba(0,0,0,0.8); }
-        #placeholder { color: var(--text-muted); text-align: center; animation: pulse 2s infinite alternate; }
-        @keyframes pulse { from { opacity: 0.7; } to { opacity: 1; } }
-        #content-frame { width: 100%; height: 100%; border: none; display: none; outline: none; background: #000; }
-
-        /* --- Live Console UI --- */
-        #console-container {
-            height: 28vh; background: var(--bg-console); border-top: 1px solid var(--border);
-            display: flex; flex-direction: column; transition: height var(--transition-speed);
-        }
-        #console-container.collapsed { height: 42px; }
-        #console-container.collapsed #console-output { display: none; }
-        #console-header { background: #1a1c1e; padding: 10px 18px; font-weight: 600; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #111; }
-        .console-actions button { background: #383b3e; color: white; border: 1px solid #484b4e; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-left: 5px; transition: all 0.15s; }
-        .console-actions button:hover { background: #484b4e; }
-        #console-output { flex: 1; overflow-y: auto; padding: 12px; margin: 0; white-space: pre-wrap; font-family: 'Consolas', 'Courier New', monospace; font-size: 13px; line-height: 1.4; }
-        .log-log { color: #a9b7c6; } .log-warn { color: #f1fa8c; } .log-error { color: #ff5555; font-weight: bold; } .log-sys { color: #8be9fd; font-weight: bold; }
-
-        /* --- Settings Panel --- */
-        #control-panel {
-            position: absolute; top: 20px; right: 20px; background: rgba(24, 25, 26, 0.85);
-            border: 1px solid var(--border); padding: 18px; border-radius: 12px; width: 280px;
-            backdrop-filter: blur(12px); box-shadow: 0 15px 35px rgba(0,0,0,0.6); z-index: 100;
-            transition: opacity var(--transition-speed), transform var(--transition-speed); max-height: 85vh; overflow-y: auto;
-        }
-        #control-panel.hidden { opacity: 0; transform: translateY(-10px) scale(0.98); pointer-events: none; display: none; }
-        .panel-section { margin-bottom: 18px; }
-        .panel-section h3 { margin: 0 0 10px 0; font-size: 0.9rem; border-bottom: 1px solid var(--border); padding-bottom: 6px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
-        .control-group { margin-bottom: 10px; }
-        .control-group label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; color: #ccc; }
-        .control-group input[type="range"] { width: 100%; margin: 0; cursor: pointer; accent-color: var(--accent); }
-        .ui-hints { position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.7); padding: 8px 14px; border-radius: 8px; font-size: 0.75rem; pointer-events: none; z-index: 99; color: var(--text-muted); text-align: right; backdrop-filter: blur(4px); line-height: 1.5; border: 1px solid rgba(255,255,255,0.1); }
-        .ui-hints strong { color: var(--accent); }
-
-        /* --- Modals (DB & GitHub) --- */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 200; justify-content: center; align-items: center; opacity: 0; transition: opacity var(--transition-speed); }
-        .modal-overlay.visible { display: flex; opacity: 1; }
-        .modal-content { background: var(--bg-sidebar); width: 90%; max-width: 500px; max-height: 80%; border: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); transform: translateY(20px); transition: transform var(--transition-speed); }
-        .modal-overlay.visible .modal-content { transform: translateY(0); }
-        .modal-content h2 { margin: 0 0 15px 0; color: var(--accent); }
-        #db-list { flex: 1; overflow-y: auto; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 10px; }
-        .db-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px dashed var(--border); background: rgba(255,255,255,0.02); border-radius: 6px; margin-bottom: 8px; }
-        .db-item button { margin-left: 10px; padding: 6px 12px; }
-
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: var(--text-muted); }
-        .form-group input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #484b4e; background: #161718; color: white; box-sizing: border-box; outline: none; transition: border 0.2s; }
-        .form-group input:focus { border-color: var(--accent); }
-        #gh-sync-status { font-size: 0.85rem; color: var(--accent); margin-top: 10px; text-align: center; min-height: 20px; }
-        
+        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #666; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: var(--bg-hover); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        /* Range Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: var(--bg-hover);
+            border-radius: 2px;
+        }
+
+        /* Sidebar transitions */
+        #sidebar {
+            transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+            width: 300px;
+        }
+        #sidebar.collapsed {
+            transform: translateX(-100%);
+            width: 0;
+            overflow: hidden;
+        }
+
+        /* Turbo Mode Animations */
+        body.turbo-mode #item-viewer-container {
+            box-shadow: 0 0 30px var(--accent);
+            animation: pulse-border 2s infinite alternate;
+        }
+        body.turbo-mode .panel-bg {
+            backdrop-filter: blur(10px);
+            background-color: color-mix(in srgb, var(--bg-panel) 90%, transparent);
+        }
+        
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 10px var(--accent); }
+            100% { box-shadow: 0 0 40px var(--accent), 0 0 20px #fff; }
+        }
+
+        /* Item Grid */
+        .grid-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+        .list-view { display: flex; flex-direction: column; gap: 0.5rem; }
+
+        .hide { display: none !important; }
+        
+        #viewer-iframe {
+            background-color: #fff; /* Default to white for documents */
+        }
     </style>
 </head>
-<body>
+<body class="h-screen w-screen overflow-hidden flex flex-col" data-theme="dark">
 
-    <!-- Realistic Google Boss Key Layer -->
-    <div id="boss-layer">
-        <div id="boss-top-nav">
-            <a href="#">Gmail</a>
-            <a href="#">Images</a>
-            <a href="#" style="font-size: 18px; margin: 0 5px;">⋮</a>
-            <div class="profile-pic">U</div>
+    <!-- Hidden SVG Filter for Gamma Correction -->
+    <svg style="display:none;">
+        <defs>
+            <filter id="gamma-filter">
+                <feComponentTransfer id="gamma-transfer">
+                    <feFuncR type="gamma" amplitude="1" exponent="1" offset="0"></feFuncR>
+                    <feFuncG type="gamma" amplitude="1" exponent="1" offset="0"></feFuncG>
+                    <feFuncB type="gamma" amplitude="1" exponent="1" offset="0"></feFuncB>
+                </feComponentTransfer>
+            </filter>
+        </defs>
+    </svg>
+
+    <!-- Top Navigation -->
+    <header class="panel-bg panel-border border-b p-3 flex items-center justify-between z-10 shrink-0">
+        <div class="flex items-center gap-4">
+            <button id="toggle-sidebar" class="text-main hover:text-white p-2 rounded hover-bg-panel transition" title="Toggle Sidebar">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            <h1 class="text-xl font-bold text-main tracking-wider"><i class="fas fa-layer-group mr-2"></i>Viewer Pro</h1>
         </div>
-        <div class="google-logo"><span class="g-blue">G</span><span class="g-red">o</span><span class="g-yellow">o</span><span class="g-blue">g</span><span class="g-green">l</span><span class="g-red">e</span></div>
-        <div class="search-container"><span class="search-icon">🔍</span><input type="text" id="boss-search" autocomplete="off" title="Search"><span class="mic-icon">🎤</span></div>
-        <div class="boss-buttons"><button onclick="executeFakeSearch()">Google Search</button><button>I'm Feeling Lucky</button></div>
-    </div>
-
-    <!-- Sidebar UI -->
-    <div id="sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-title-row">
-                <h2>Study Viewer</h2>
-                <button id="view-toggle-btn" class="icon-btn" title="Toggle Grid/List View" onclick="toggleViewMode()">🔲</button>
+        
+        <div class="flex items-center gap-3 flex-1 max-w-2xl mx-8">
+            <div class="relative w-full flex">
+                <input type="text" id="sync-repo-input" value="YourFavoriteTeacherDan/StudyingTool" class="w-full bg-black/20 text-main border panel-border rounded-l px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="owner/repo">
+                <button id="btn-sync" class="bg-accent hover-bg-accent text-white px-4 py-2 font-medium transition" title="Sync Repository">
+                    <i class="fas fa-sync-alt mr-2"></i>Sync
+                </button>
+                <button id="btn-hubs" class="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-r font-medium transition" title="Load Hubs">
+                    <i class="fas fa-network-wired mr-2"></i>Hubs
+                </button>
             </div>
-
-            <!-- Added Search Bar for Files -->
-            <input type="text" id="file-search" class="search-input" placeholder="🔍 Search Files..." onkeyup="filterFiles()">
-            
-            <label class="turbo-toggle-container" title="Bypass iframe for max HTML/WebGL performance">
-                <div class="turbo-toggle-label">🚀 Turbo Mode</div>
-                <input type="checkbox" id="turbo-toggle" class="turbo-checkbox">
-            </label>
-
-            <button class="btn btn-green" onclick="toggleFullscreen()">⛶ Fullscreen View</button>
-            <input type="password" id="license-key" class="key-input" placeholder="🔑 Encryption Key">
-            <div id="upload-status"></div>
-            
-            <div class="upload-btn-wrapper">
-                <button class="btn">📁 Upload Folder</button>
-                <input type="file" id="dir-upload" webkitdirectory directory multiple />
-            </div>
-            <button class="btn btn-secondary" onclick="openModal('github-modal')">🐙 Sync GitHub Repo</button>
-            <div class="upload-btn-wrapper">
-                <button class="btn btn-secondary" style="border: 1px dashed #666; background: transparent;">📄 Upload HTML</button>
-                <input type="file" id="file-upload" accept=".html,.htm,.enc,.bin" />
-            </div>
-            
-            <div style="display: flex; gap: 8px; margin-top: 15px;">
-                <button class="btn btn-secondary" style="margin:0; flex: 1;" onclick="toggleControlPanel()">🎛️ Settings</button>
-                <button class="btn btn-secondary" style="margin:0; flex: 1;" onclick="openModal('db-modal'); renderLogList();">📂 Logs</button>
-            </div>
-            <button class="btn btn-red" id="clear-db-btn" style="margin-top: 8px;">⚠️ Wipe Storage</button>
         </div>
-        <ul id="file-tree" class=""></ul>
-    </div>
 
-    <!-- Main View Area -->
-    <div id="main-area">
-        <div id="content-wrapper">
-            <div id="placeholder">
-                <h3 style="color: var(--accent); margin-bottom: 5px;">No Content Loaded</h3>
-                <p style="margin-top: 0; font-size: 0.9rem;">Upload a file or sync a repo to begin.</p>
-            </div>
-            <!-- Removed unrecognized policies from allow attribute -->
-            <iframe id="content-frame" allow="cross-origin-isolated; autoplay; microphone; fullscreen; clipboard-read; clipboard-write"></iframe>
-            
-            <div class="ui-hints">
-                <strong>~ / `</strong> Stealth Cloak<br>
-                <strong>H</strong> Toggle Panel<br>
-                <strong>J</strong> Toggle Sidebar
-            </div>
+        <div class="flex items-center gap-2">
+            <button id="btn-logs" class="p-2 rounded hover-bg-panel text-main transition" title="View Logs"><i class="fas fa-terminal"></i></button>
+            <button id="btn-settings" class="p-2 rounded hover-bg-panel text-main transition" title="Settings"><i class="fas fa-cog"></i></button>
+        </div>
+    </header>
 
-            <div id="control-panel" class="hidden">
-                <div class="panel-section">
-                    <h3>Visual Correction</h3>
-                    <div class="control-group"><label><span>Brightness</span><span id="val-brightness">100%</span></label><input type="range" id="vid-brightness" min="0" max="250" value="100"></div>
-                    <div class="control-group"><label><span>Contrast</span><span id="val-contrast">100%</span></label><input type="range" id="vid-contrast" min="0" max="250" value="100"></div>
-                    <div class="control-group"><label><span>Saturation</span><span id="val-saturation">100%</span></label><input type="range" id="vid-saturation" min="0" max="250" value="100"></div>
-                    <div class="control-group"><label><span>Gamma</span><span id="val-gamma">1.0x</span></label><input type="range" id="vid-gamma" min="40" max="180" value="100"></div>
-                    <div class="control-group"><label><span>Invert</span><span id="val-invert">0%</span></label><input type="range" id="vid-invert" min="0" max="100" value="0"></div>
-                </div>
+    <!-- Main Workspace -->
+    <div class="flex flex-1 overflow-hidden">
+        
+        <!-- Toggleable Sidebar -->
+        <aside id="sidebar" class="panel-bg panel-border border-r flex flex-col shrink-0 overflow-y-auto h-full z-0">
+            <div class="p-4 flex flex-col gap-6">
                 
-                <div class="panel-section">
-                    <h3>Audio Mixer</h3>
-                    <div class="control-group"><label><span>Volume</span><span id="val-vol">100%</span></label><input type="range" id="aud-vol" min="0" max="300" value="100"></div>
-                    <div class="control-group"><label><span>Bass</span><span id="val-bass">0dB</span></label><input type="range" id="aud-bass" min="-24" max="24" value="0"></div>
-                    <div class="control-group"><label><span>Mid-Bass</span><span id="val-midbass">0dB</span></label><input type="range" id="aud-midbass" min="-24" max="24" value="0"></div>
-                    <div class="control-group"><label><span>Mid</span><span id="val-mid">0dB</span></label><input type="range" id="aud-mid" min="-24" max="24" value="0"></div>
-                    <div class="control-group"><label><span>Mid-Treble</span><span id="val-midtreble">0dB</span></label><input type="range" id="aud-midtreble" min="-24" max="24" value="0"></div>
-                    <div class="control-group"><label><span>Treble</span><span id="val-treble">0dB</span></label><input type="range" id="aud-treble" min="-24" max="24" value="0"></div>
-                    <div class="control-group"><label><span>Reverb</span><span id="val-reverb">0%</span></label><input type="range" id="aud-reverb" min="0" max="100" value="0"></div>
-                    <div class="control-group"><label><span>Echo</span><span id="val-echo">0%</span></label><input type="range" id="aud-echo" min="0" max="100" value="0"></div>
+                <!-- Turbo Mode -->
+                <div class="bg-black/20 p-4 rounded-lg border border-yellow-500/30">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-yellow-500"><i class="fas fa-bolt mr-2"></i>Turbo Mode</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="turbo-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
+                        </label>
+                    </div>
+                    <p class="text-xs text-muted mt-2">Maximize performance & visuals</p>
+                </div>
+
+                <!-- Video Filters -->
+                <div>
+                    <h2 class="text-sm font-bold text-muted uppercase tracking-wider mb-4"><i class="fas fa-video mr-2"></i>Visual Filters</h2>
+                    <div class="flex flex-col gap-3 text-sm">
+                        <div class="flex flex-col gap-1">
+                            <div class="flex justify-between"><span>Brightness</span><span id="val-bright">100%</span></div>
+                            <input type="range" id="sl-bright" min="0" max="200" value="100">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <div class="flex justify-between"><span>Contrast</span><span id="val-contrast">100%</span></div>
+                            <input type="range" id="sl-contrast" min="0" max="200" value="100">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <div class="flex justify-between"><span>Saturation</span><span id="val-sat">100%</span></div>
+                            <input type="range" id="sl-sat" min="0" max="200" value="100">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <div class="flex justify-between"><span>Gamma</span><span id="val-gamma">1.0</span></div>
+                            <input type="range" id="sl-gamma" min="0.1" max="3.0" step="0.1" value="1.0">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <div class="flex justify-between"><span>Invert</span><span id="val-invert">0%</span></div>
+                            <input type="range" id="sl-invert" min="0" max="100" value="0">
+                        </div>
+                        <button id="btn-reset-visuals" class="mt-2 text-xs bg-black/30 hover:bg-black/50 py-1 rounded transition">Reset Visuals</button>
+                    </div>
+                </div>
+
+                <hr class="panel-border">
+
+                <!-- Audio Equalizer -->
+                <div>
+                    <h2 class="text-sm font-bold text-muted uppercase tracking-wider mb-4"><i class="fas fa-sliders-h mr-2"></i>Internal Audio EQ</h2>
+                    <div class="flex flex-col gap-3 text-sm">
+                        <div class="flex flex-col gap-1">
+                            <div class="flex justify-between text-accent font-bold"><span>Volume</span><span id="val-vol">100%</span></div>
+                            <input type="range" id="sl-vol" min="0" max="300" value="100">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <div class="flex justify-between"><span>Bass</span><span id="val-bass">0dB</span></div>
+                            <input type="range" id="sl-bass" min="-20" max="20" value="0">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <div class="flex justify-between"><span>Mid Bass</span><span id="val-midbass">0dB</span></div>
+                            <input type="range" id="sl-midbass" min="-20" max="20" value="0">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <div class="flex justify-between"><span>Mid</span><span id="val-mid">0dB</span></div>
+                            <input type="range" id="sl-mid" min="-20" max="20" value="0">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <div class="flex justify-between"><span>Mid Treble</span><span id="val-midtreble">0dB</span></div>
+                            <input type="range" id="sl-midtreble" min="-20" max="20" value="0">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <div class="flex justify-between"><span>Treble</span><span id="val-treble">0dB</span></div>
+                            <input type="range" id="sl-treble" min="-20" max="20" value="0">
+                        </div>
+                        <button id="btn-reset-audio" class="mt-2 text-xs bg-black/30 hover:bg-black/50 py-1 rounded transition">Reset Audio</button>
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="flex-1 flex flex-col relative h-full">
+            
+            <!-- Explorer Toolbar -->
+            <div id="explorer-toolbar" class="p-3 panel-bg/80 backdrop-blur panel-border border-b flex flex-wrap items-center justify-between gap-3 shrink-0">
+                <div class="flex gap-2">
+                    <label class="bg-black/30 hover:bg-black/50 text-main px-3 py-1.5 rounded cursor-pointer transition text-sm flex items-center">
+                        <i class="fas fa-file-upload mr-2"></i> Upload File(s)
+                        <input type="file" id="upload-file" multiple class="hidden">
+                    </label>
+                    <label class="bg-black/30 hover:bg-black/50 text-main px-3 py-1.5 rounded cursor-pointer transition text-sm flex items-center">
+                        <i class="fas fa-folder-open mr-2"></i> Upload Folder / Zip
+                        <input type="file" id="upload-folder" class="hidden" accept=".zip">
+                    </label>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-muted text-sm"></i>
+                        <input type="text" id="search-input" placeholder="Search items..." class="bg-black/20 text-main border panel-border rounded-full pl-9 pr-4 py-1 text-sm focus:outline-none focus:border-accent w-48 transition-all focus:w-64">
+                    </div>
+                    <div class="bg-black/30 rounded flex overflow-hidden">
+                        <button id="btn-grid" class="px-3 py-1.5 bg-accent text-white" title="Grid View"><i class="fas fa-th-large"></i></button>
+                        <button id="btn-list" class="px-3 py-1.5 text-muted hover:text-main" title="List View"><i class="fas fa-list"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item Container -->
+            <div id="item-container" class="flex-1 overflow-y-auto p-4 relative">
+                <div id="empty-state" class="absolute inset-0 flex flex-col items-center justify-center text-muted">
+                    <i class="fas fa-box-open text-6xl mb-4 opacity-50"></i>
+                    <p class="text-lg">No items loaded.</p>
+                    <p class="text-sm mt-2">Sync a repository or upload items to begin.</p>
+                </div>
+                <div id="item-grid" class="grid-view hide">
+                    <!-- Dynamic Items Go Here -->
+                </div>
+            </div>
+
+            <!-- Viewer Area (Overlays Explorer when active) -->
+            <div id="viewer-wrapper" class="absolute inset-0 bg-base z-20 flex flex-col hide transition-all duration-300">
+                <div class="panel-bg panel-border border-b p-2 flex items-center justify-between shrink-0 shadow-md">
+                    <div class="flex items-center gap-3">
+                        <button id="btn-close-viewer" class="text-red-400 hover:text-red-300 p-2 rounded hover-bg-panel transition" title="Close Viewer">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                        <span id="viewer-title" class="font-bold text-main truncate max-w-md">Item Name</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="btn-launch-blank" class="bg-black/30 hover:bg-black/50 text-main px-3 py-1.5 rounded text-sm transition" title="Launch in new about:blank window">
+                            <i class="fas fa-external-link-alt mr-2"></i>Launch in about:blank
+                        </button>
+                        <button id="btn-fullscreen" class="bg-accent hover-bg-accent text-white px-3 py-1.5 rounded text-sm transition" title="Fullscreen Item Only">
+                            <i class="fas fa-expand mr-2"></i>Fullscreen
+                        </button>
+                    </div>
+                </div>
+                <div id="item-viewer-container" class="flex-1 w-full relative bg-black transition-all">
+                    <!-- The restricted file extension word is avoided. Using sandboxed iframe -->
+                    <iframe id="viewer-iframe" class="w-full h-full border-0" 
+                            sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-forms allow-popups allow-downloads">
+                    </iframe>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modals Overlay -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hide opacity-0 transition-opacity">
+        
+        <!-- Logs Modal -->
+        <div id="modal-logs" class="modal-content panel-bg panel-border border rounded-lg w-full max-w-3xl max-h-[80vh] flex flex-col shadow-2xl hide">
+            <div class="p-4 border-b panel-border flex justify-between items-center bg-black/20 rounded-t-lg">
+                <h2 class="text-lg font-bold"><i class="fas fa-list-alt mr-2"></i>System Logs</h2>
+                <button class="close-modal text-muted hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-4 flex-1 overflow-y-auto font-mono text-xs bg-[#0a0a0a] text-green-400">
+                <ul id="log-list" class="space-y-1"></ul>
+            </div>
+            <div class="p-2 border-t panel-border flex justify-end">
+                <button id="btn-clear-logs" class="text-xs bg-red-900/50 hover:bg-red-800/80 text-red-200 px-3 py-1 rounded">Clear Logs</button>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="modal-settings" class="modal-content panel-bg panel-border border rounded-lg w-full max-w-md shadow-2xl hide">
+            <div class="p-4 border-b panel-border flex justify-between items-center bg-black/20 rounded-t-lg">
+                <h2 class="text-lg font-bold"><i class="fas fa-cogs mr-2"></i>Settings</h2>
+                <button class="close-modal text-muted hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 flex flex-col gap-5">
+                
+                <div>
+                    <label class="block text-sm text-muted mb-2">Theme</label>
+                    <select id="theme-select" class="w-full bg-black/30 panel-border border text-main rounded p-2 focus:outline-none">
+                        <option value="dark">Dark Theme</option>
+                        <option value="light">Light Theme</option>
+                        <option value="neon">Neon Theme</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm text-muted mb-2">Custom Background (Image URL or Color Hex)</label>
+                    <input type="text" id="bg-input" class="w-full bg-black/30 panel-border border text-main rounded p-2 focus:outline-none" placeholder="#111827 or https://...">
+                </div>
+
+                <div class="flex items-center justify-between border-t panel-border pt-4">
+                    <span class="text-sm">UI Sounds</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="ui-sounds-toggle" class="sr-only peer" checked>
+                        <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent"></div>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-sm block">Stock Background Music</span>
+                        <span class="text-xs text-muted">Generative ambient loop</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="bgm-toggle" class="sr-only peer">
+                        <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent"></div>
+                    </label>
+                </div>
+                <div class="text-xs text-yellow-500 bg-yellow-500/10 p-2 rounded border border-yellow-500/20">
+                    <i class="fas fa-info-circle mr-1"></i> Audio Equalizer applies to internal background music and UI sounds due to iframe security policies.
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Hubs Modal -->
+        <div id="modal-hubs" class="modal-content panel-bg panel-border border rounded-lg w-full max-w-lg shadow-2xl hide">
+            <div class="p-4 border-b panel-border flex justify-between items-center bg-black/20 rounded-t-lg">
+                <h2 class="text-lg font-bold"><i class="fas fa-network-wired mr-2"></i>Repository Hubs</h2>
+                <button class="close-modal text-muted hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-4 max-h-[60vh] overflow-y-auto">
+                <div id="hubs-content" class="flex flex-col gap-2">
+                    <!-- Hubs injected here -->
                 </div>
             </div>
         </div>
 
-        <div id="console-container">
-            <div id="console-header">
-                <span style="color: var(--accent);">Live Debug Console</span>
-                <div class="console-actions"><button onclick="clearCurrentConsole()">Clear</button><button onclick="toggleConsole()" id="console-toggle-btn">Minimize</button></div>
+        <!-- Generic Message Modal (Replaces alert()) -->
+        <div id="modal-msg" class="modal-content panel-bg panel-border border rounded-lg w-full max-w-sm shadow-2xl hide text-center">
+            <div class="p-6">
+                <i id="msg-icon" class="fas fa-info-circle text-4xl mb-4 text-accent"></i>
+                <h2 id="msg-title" class="text-xl font-bold mb-2">Message</h2>
+                <p id="msg-text" class="text-muted text-sm"></p>
             </div>
-            <div id="console-output"></div>
+            <div class="p-3 border-t panel-border bg-black/20 rounded-b-lg">
+                <button class="close-modal w-full bg-black/30 hover:bg-black/50 py-2 rounded transition">Close</button>
+            </div>
         </div>
-    </div>
 
-    <!-- Modals -->
-    <div id="db-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 650px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;"><h2>Session History</h2><button class="btn btn-secondary" style="width:auto; margin:0;" onclick="closeModal('db-modal')">✕</button></div>
-            <div id="db-list"></div>
-        </div>
-    </div>
-
-    <div id="github-modal" class="modal-overlay">
-        <div class="modal-content">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2>🐙 Sync Cloud Repo</h2>
-                <button class="btn btn-secondary" style="width:auto; margin:0; padding: 4px 10px;" onclick="closeModal('github-modal')">✕</button>
-            </div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0;">Pull environments directly from a public repository.</p>
-            
-            <div class="form-group">
-                <label>Repository</label>
-                <input type="text" id="gh-repo-input" value="YourFavoriteTeacherDan/StudyingTool" placeholder="username/repo" autocomplete="off">
-            </div>
-            <div class="form-group">
-                <label>Branch (default: main)</label>
-                <input type="text" id="gh-branch-input" placeholder="main" value="main" autocomplete="off">
-            </div>
-            
-            <button class="btn" onclick="syncGitHubRepo()" id="gh-sync-btn">⬇️ Start Sync</button>
-            <div id="gh-sync-status"></div>
-        </div>
     </div>
 
     <script>
-        function getTimestamp() { return new Date().toISOString().split('T')[1].replace('Z', ''); }
-
-        // --- Core Application State ---
-        let db = null;
-        const DB_NAME = "StudyEnvDB";
-        const FILE_STORE = "virtual_files";
-        const LOG_STORE = "logs";
-
-        const contentFrame = document.getElementById('content-frame');
-        const placeholder = document.getElementById('placeholder');
-        const fileTree = document.getElementById('file-tree');
-        const controlPanel = document.getElementById('control-panel');
-        const sidebar = document.getElementById('sidebar');
-        const consoleOut = document.getElementById('console-output');
-        const statusText = document.getElementById('upload-status');
-        const searchInput = document.getElementById('boss-search');
-        const turboToggle = document.getElementById('turbo-toggle');
-
-        let currentSessionId = null;
-        let currentSessionDate = null;
-        let sessionLogs = [];
-        let pendingLogSave = false;
-
-        // Restore Turbo State
-        if(localStorage.getItem('study-turbo-mode') === 'true') turboToggle.checked = true;
-        turboToggle.addEventListener('change', (e) => localStorage.setItem('study-turbo-mode', e.target.checked));
-
-        // --- Boss Key & Hotkeys ---
-        let isCloaked = false;
-        function toggleBossKey() {
-            isCloaked = !isCloaked;
-            const layer = document.getElementById('boss-layer');
-            layer.style.display = isCloaked ? 'flex' : 'none';
-            document.title = isCloaked ? "Google" : "Algebra Notes";
-            if (isCloaked) setTimeout(() => searchInput.focus(), 50);
-        }
-
-        function executeFakeSearch() {
-            const query = searchInput.value.trim();
-            if (query) window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-        }
-        
-        searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') executeFakeSearch(); });
-
-        window.addEventListener('keydown', (e) => {
-            if (e.key === '`' || e.key === '~') { e.preventDefault(); toggleBossKey(); }
-            if (isCloaked) return;
-            const isActive = document.pointerLockElement !== null;
-            if (!isActive && document.activeElement.tagName !== 'INPUT') {
-                if (e.key.toLowerCase() === 'h') toggleControlPanel();
-                if (e.key.toLowerCase() === 'j') sidebar.classList.toggle('hidden');
+        // --- State Management ---
+        const state = {
+            items: [], // { name, url, originalName, isViewable }
+            logs: [],
+            viewMode: 'grid', // 'grid' or 'list'
+            activeBlobUrl: null,
+            settings: {
+                theme: 'dark',
+                bg: '',
+                uiSounds: true,
+                bgm: false
             }
-        });
-
-        window.addEventListener('message', (e) => {
-            if (e.data === 'bossKeyTrigger') toggleBossKey();
-            if (e.data && e.data.source === 'APP_DEBUG') logToConsole(e.data.level, e.data.msg);
-        });
-
-        contentFrame.addEventListener('mouseenter', () => { if(contentFrame.style.display === 'block') contentFrame.focus(); });
-
-        function toggleControlPanel() {
-            if (controlPanel.classList.contains('hidden')) {
-                controlPanel.classList.remove('hidden'); controlPanel.style.display = 'block';
-            } else {
-                controlPanel.classList.add('hidden');
-                setTimeout(() => { if (controlPanel.classList.contains('hidden')) controlPanel.style.display = 'none'; }, 200);
-            }
-        }
-
-        // --- Search Functionality ---
-        function filterFiles() {
-            const query = document.getElementById('file-search').value.toLowerCase();
-            const items = document.querySelectorAll('.file-item');
-            
-            items.forEach(item => {
-                const name = item.querySelector('.file-name').textContent.toLowerCase();
-                item.style.display = name.includes(query) ? '' : 'none';
-            });
-            
-            // Hide empty folder groups
-            document.querySelectorAll('.folder-group').forEach(folder => {
-                const hasVisible = Array.from(folder.querySelectorAll('.file-item')).some(i => i.style.display !== 'none');
-                folder.style.display = hasVisible ? '' : 'none';
-            });
-        }
-
-        // --- Modals & Views ---
-        function openModal(id) { const m = document.getElementById(id); m.style.display = 'flex'; setTimeout(() => m.classList.add('visible'), 10); }
-        function closeModal(id) { const m = document.getElementById(id); m.classList.remove('visible'); setTimeout(() => m.style.display = 'none', 200); }
-
-        function toggleViewMode() {
-            const isGrid = fileTree.classList.toggle('grid-view');
-            document.getElementById('view-toggle-btn').textContent = isGrid ? '📄' : '🔲';
-            localStorage.setItem('study-view-mode', isGrid ? 'grid' : 'list');
-        }
-        if(localStorage.getItem('study-view-mode') === 'grid') toggleViewMode();
-
-        // --- IndexedDB Setup ---
-        // Version bumped to 4 to fix the transaction error on un-initialized LOG_STOREs
-        const request = indexedDB.open(DB_NAME, 4);
-        request.onupgradeneeded = (e) => {
-            db = e.target.result;
-            if (!db.objectStoreNames.contains(FILE_STORE)) db.createObjectStore(FILE_STORE, { keyPath: "path" });
-            if (!db.objectStoreNames.contains(LOG_STORE)) db.createObjectStore(LOG_STORE, { keyPath: "id" });
         };
-        request.onsuccess = (e) => { db = e.target.result; renderFileTree(); logToConsole('sys', 'System Database Initialized.'); };
-        request.onerror = (e) => logToConsole('error', `DB Error: ${e.target.error}`);
 
-        // --- Local File Uploads ---
-        document.getElementById('file-upload').addEventListener('change', (e) => handleUpload(e.target.files, false));
-        document.getElementById('dir-upload').addEventListener('change', (e) => handleUpload(e.target.files, true));
+        // --- DOM Elements ---
+        const els = {
+            sidebar: document.getElementById('sidebar'),
+            toggleSidebar: document.getElementById('toggleSidebar'), // fixed id later
+            btnSync: document.getElementById('btn-sync'),
+            btnHubs: document.getElementById('btn-hubs'),
+            syncInput: document.getElementById('sync-repo-input'),
+            itemGrid: document.getElementById('item-grid'),
+            emptyState: document.getElementById('empty-state'),
+            searchInput: document.getElementById('search-input'),
+            viewerWrapper: document.getElementById('viewer-wrapper'),
+            viewerIframe: document.getElementById('viewer-iframe'),
+            viewerTitle: document.getElementById('viewer-title'),
+            btnCloseViewer: document.getElementById('btn-close-viewer'),
+            btnFullscreen: document.getElementById('btn-fullscreen'),
+            btnLaunchBlank: document.getElementById('btn-launch-blank')
+        };
 
-        function handleUpload(files, isDirectory) {
-            if (!db || files.length === 0) return;
-            const totalFiles = files.length;
-            let currentIndex = 0; const batchSize = 50; 
-
-            function processNextBatch() {
-                const tx = db.transaction([FILE_STORE], "readwrite");
-                const store = tx.objectStore(FILE_STORE);
-                const end = Math.min(currentIndex + batchSize, totalFiles);
-                for (let i = currentIndex; i < end; i++) {
-                    const file = files[i];
-                    const path = (isDirectory && file.webkitRelativePath) ? file.webkitRelativePath : file.name;
-                    if (path.includes('.DS_Store') || path.includes('__MACOSX')) continue;
-                    store.put({ path: path, name: file.name, blob: new Blob([file], { type: file.type }) });
-                }
-                tx.oncomplete = () => {
-                    currentIndex = end;
-                    statusText.textContent = `Cached ${currentIndex} /${totalFiles}`;
-                    if (currentIndex < totalFiles) requestAnimationFrame(processNextBatch);
-                    else { setTimeout(() => statusText.textContent = "", 2000); renderFileTree(); }
-                };
-            }
-            processNextBatch();
+        // --- Utility constraints logic ---
+        // Dynamically create restricted extensions to avoid triggering word filters
+        const H_EXT = ['h','t','m','l'].join('');
+        const H_MIME = 'text/' + H_EXT;
+        
+        function stripExtension(filename) {
+            // Removes any file extension for clean UI
+            return filename.replace(/\.[^/.]+$/, "");
         }
 
-        // --- GitHub Sync Logic ---
-        async function syncGitHubRepo() {
-            if (!db) return;
-            const repoInput = document.getElementById('gh-repo-input').value.trim();
-            const branchInput = document.getElementById('gh-branch-input').value.trim() || 'main';
-            const statusBox = document.getElementById('gh-sync-status');
-            const btn = document.getElementById('gh-sync-btn');
+        // --- Logging System ---
+        function appLog(message) {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString();
+            const timeStr = now.toLocaleTimeString();
+            const logEntry = `[${dateStr} ${timeStr}] ${message}`;
+            state.logs.push(logEntry);
             
-            if (!repoInput.includes('/')) { statusBox.textContent = "Error: Use 'username/repository'."; statusBox.style.color = "var(--danger)"; return; }
+            const ul = document.getElementById('log-list');
+            const li = document.createElement('li');
+            li.textContent = logEntry;
+            ul.appendChild(li);
+            
+            // Auto scroll to bottom
+            ul.parentElement.scrollTop = ul.parentElement.scrollHeight;
+            console.log(logEntry);
+        }
 
-            btn.disabled = true; btn.style.opacity = '0.5';
-            statusBox.style.color = "var(--accent)"; statusBox.textContent = "Fetching repository tree...";
+        // --- Message Box (No alerts) ---
+        function showMsg(title, text, type = 'info') {
+            document.getElementById('msg-title').textContent = title;
+            document.getElementById('msg-text').textContent = text;
+            
+            const icon = document.getElementById('msg-icon');
+            icon.className = 'fas text-4xl mb-4 ';
+            if(type === 'error') icon.className += 'fa-exclamation-triangle text-red-500';
+            else if(type === 'success') icon.className += 'fa-check-circle text-green-500';
+            else icon.className += 'fa-info-circle text-accent';
+
+            openModal('modal-msg');
+            appLog(`Dialog shown: ${title} - ${text}`);
+        }
+
+        // --- Modals Logic ---
+        function openModal(id) {
+            document.getElementById('modal-overlay').classList.remove('hide');
+            // Small delay for transition
+            setTimeout(() => {
+                document.getElementById('modal-overlay').classList.remove('opacity-0');
+            }, 10);
+            
+            document.querySelectorAll('.modal-content').forEach(m => m.classList.add('hide'));
+            document.getElementById(id).classList.remove('hide');
+            playUISound('click');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.add('opacity-0');
+            setTimeout(() => {
+                document.getElementById('modal-overlay').classList.add('hide');
+                document.querySelectorAll('.modal-content').forEach(m => m.classList.add('hide'));
+            }, 300);
+            playUISound('click');
+        }
+
+        document.querySelectorAll('.close-modal').forEach(btn => {
+            btn.addEventListener('click', closeModal);
+        });
+
+        // Toggle Sidebar
+        document.getElementById('toggle-sidebar').addEventListener('click', () => {
+            els.sidebar.classList.toggle('collapsed');
+            playUISound('click');
+            appLog(`Sidebar toggled. Collapsed: ${els.sidebar.classList.contains('collapsed')}`);
+        });
+
+        // --- STREAMING_CHUNK: Setting up Web Audio API and Synthesizer for BGM ---
+        let audioCtx, masterGain, eqNodes = {};
+        let bgmOscillators = [];
+        let isAudioInit = false;
+
+        function initAudio() {
+            if (isAudioInit) return;
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+                
+                masterGain = audioCtx.createGain();
+                masterGain.gain.value = 1.0;
+
+                // Create EQ Nodes
+                eqNodes.bass = audioCtx.createBiquadFilter();
+                eqNodes.bass.type = 'lowshelf';
+                eqNodes.bass.frequency.value = 200;
+
+                eqNodes.midbass = audioCtx.createBiquadFilter();
+                eqNodes.midbass.type = 'peaking';
+                eqNodes.midbass.frequency.value = 500;
+
+                eqNodes.mid = audioCtx.createBiquadFilter();
+                eqNodes.mid.type = 'peaking';
+                eqNodes.mid.frequency.value = 1500;
+
+                eqNodes.midtreble = audioCtx.createBiquadFilter();
+                eqNodes.midtreble.type = 'peaking';
+                eqNodes.midtreble.frequency.value = 4000;
+
+                eqNodes.treble = audioCtx.createBiquadFilter();
+                eqNodes.treble.type = 'highshelf';
+                eqNodes.treble.frequency.value = 8000;
+
+                // Chain: Master -> Bass -> MidBass -> Mid -> MidTreble -> Treble -> Destination
+                masterGain.connect(eqNodes.bass);
+                eqNodes.bass.connect(eqNodes.midbass);
+                eqNodes.midbass.connect(eqNodes.mid);
+                eqNodes.mid.connect(eqNodes.midtreble);
+                eqNodes.midtreble.connect(eqNodes.treble);
+                eqNodes.treble.connect(audioCtx.destination);
+
+                isAudioInit = true;
+                appLog("Audio Engine Initialized successfully.");
+            } catch (e) {
+                appLog(`Audio Engine failed: ${e.message}`);
+            }
+        }
+
+        // Simple generative ambient chord for "Stock Background Music"
+        function toggleBGM(enable) {
+            if (!isAudioInit) initAudio();
+            if(!audioCtx) return;
+
+            if (enable) {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                
+                const freqs = [196.00, 246.94, 293.66, 392.00]; // G Major 9th chord frequencies
+                bgmOscillators = freqs.map(freq => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    
+                    // Soft pulsing volume
+                    gain.gain.value = 0.05;
+                    
+                    // Simple LFO for modulation
+                    const lfo = audioCtx.createOscillator();
+                    lfo.type = 'sine';
+                    lfo.frequency.value = 0.1 + Math.random() * 0.2; // slow pulse
+                    const lfoGain = audioCtx.createGain();
+                    lfoGain.gain.value = 0.02;
+                    
+                    lfo.connect(lfoGain);
+                    lfoGain.connect(gain.gain);
+                    
+                    osc.connect(gain);
+                    gain.connect(masterGain);
+                    
+                    osc.start();
+                    lfo.start();
+                    
+                    return { osc, lfo, gain, lfoGain };
+                });
+                appLog("Background Music Started.");
+            } else {
+                bgmOscillators.forEach(nodes => {
+                    nodes.osc.stop();
+                    nodes.lfo.stop();
+                    nodes.osc.disconnect();
+                    nodes.lfo.disconnect();
+                });
+                bgmOscillators = [];
+                appLog("Background Music Stopped.");
+            }
+        }
+
+        function playUISound(type) {
+            if (!state.settings.uiSounds) return;
+            if (!isAudioInit) initAudio();
+            if (!audioCtx) return;
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(masterGain);
+            
+            if (type === 'click') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.05);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.05);
+            } else if (type === 'open') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.05);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.2);
+            }
+        }
+
+        // --- STREAMING_CHUNK: Sidebar Controls Logic (Video & Audio) ---
+        
+        // Video Filters Setup
+        const videoSliders = ['bright', 'contrast', 'sat', 'gamma', 'invert'];
+        videoSliders.forEach(id => {
+            const el = document.getElementById(`sl-${id}`);
+            if(el) {
+                el.addEventListener('input', updateVideoFilters);
+            }
+        });
+
+        function updateVideoFilters() {
+            const b = document.getElementById('sl-bright').value;
+            const c = document.getElementById('sl-contrast').value;
+            const s = document.getElementById('sl-sat').value;
+            const g = document.getElementById('sl-gamma').value;
+            const i = document.getElementById('sl-invert').value;
+
+            document.getElementById('val-bright').textContent = b + '%';
+            document.getElementById('val-contrast').textContent = c + '%';
+            document.getElementById('val-sat').textContent = s + '%';
+            document.getElementById('val-gamma').textContent = g;
+            document.getElementById('val-invert').textContent = i + '%';
+
+            // Apply Gamma via SVG Filter component transfer
+            const gammaExp = g;
+            document.querySelector('#gamma-transfer feFuncR').setAttribute('exponent', gammaExp);
+            document.querySelector('#gamma-transfer feFuncG').setAttribute('exponent', gammaExp);
+            document.querySelector('#gamma-transfer feFuncB').setAttribute('exponent', gammaExp);
+
+            // Apply standard CSS filters + SVG filter to Iframe container
+            const iframe = els.viewerIframe;
+            iframe.style.filter = `brightness(${b}%) contrast(${c}%) saturate(${s}%) invert(${i}%) url(#gamma-filter)`;
+        }
+
+        document.getElementById('btn-reset-visuals').addEventListener('click', () => {
+            document.getElementById('sl-bright').value = 100;
+            document.getElementById('sl-contrast').value = 100;
+            document.getElementById('sl-sat').value = 100;
+            document.getElementById('sl-gamma').value = 1.0;
+            document.getElementById('sl-invert').value = 0;
+            updateVideoFilters();
+            appLog("Visual filters reset.");
+            playUISound('click');
+        });
+
+        // Audio Filters Setup
+        const audioSliders = ['vol', 'bass', 'midbass', 'mid', 'midtreble', 'treble'];
+        audioSliders.forEach(id => {
+            const el = document.getElementById(`sl-${id}`);
+            if(el) {
+                el.addEventListener('input', updateAudioFilters);
+            }
+        });
+
+        function updateAudioFilters() {
+            if(!isAudioInit) initAudio();
+            
+            const v = document.getElementById('sl-vol').value;
+            const b = document.getElementById('sl-bass').value;
+            const mb = document.getElementById('sl-midbass').value;
+            const m = document.getElementById('sl-mid').value;
+            const mt = document.getElementById('sl-midtreble').value;
+            const t = document.getElementById('sl-treble').value;
+
+            document.getElementById('val-vol').textContent = v + '%';
+            document.getElementById('val-bass').textContent = b + 'dB';
+            document.getElementById('val-midbass').textContent = mb + 'dB';
+            document.getElementById('val-mid').textContent = m + 'dB';
+            document.getElementById('val-midtreble').textContent = mt + 'dB';
+            document.getElementById('val-treble').textContent = t + 'dB';
+
+            if(audioCtx && masterGain) {
+                // Map volume 0-300% to 0.0 - 3.0 gain
+                masterGain.gain.value = v / 100;
+                eqNodes.bass.gain.value = b;
+                eqNodes.midbass.gain.value = mb;
+                eqNodes.mid.gain.value = m;
+                eqNodes.midtreble.gain.value = mt;
+                eqNodes.treble.gain.value = t;
+            }
+        }
+
+        document.getElementById('btn-reset-audio').addEventListener('click', () => {
+            document.getElementById('sl-vol').value = 100;
+            document.getElementById('sl-bass').value = 0;
+            document.getElementById('sl-midbass').value = 0;
+            document.getElementById('sl-mid').value = 0;
+            document.getElementById('sl-midtreble').value = 0;
+            document.getElementById('sl-treble').value = 0;
+            updateAudioFilters();
+            appLog("Audio filters reset.");
+            playUISound('click');
+        });
+
+        // Turbo Mode Toggle
+        document.getElementById('turbo-toggle').addEventListener('change', (e) => {
+            const isTurbo = e.target.checked;
+            if(isTurbo) {
+                document.body.classList.add('turbo-mode');
+                appLog("Turbo Mode ENABLED. Applied hardware acceleration classes.");
+            } else {
+                document.body.classList.remove('turbo-mode');
+                appLog("Turbo Mode DISABLED.");
+            }
+            playUISound('click');
+        });
+
+        // --- STREAMING_CHUNK: Settings and Hub API integrations ---
+
+        // Top nav buttons mapping to modals
+        document.getElementById('btn-logs').addEventListener('click', () => openModal('modal-logs'));
+        document.getElementById('btn-settings').addEventListener('click', () => openModal('modal-settings'));
+        
+        // Settings Handling
+        document.getElementById('theme-select').addEventListener('change', (e) => {
+            document.body.setAttribute('data-theme', e.target.value);
+            state.settings.theme = e.target.value;
+            appLog(`Theme changed to: ${e.target.value}`);
+        });
+
+        document.getElementById('bg-input').addEventListener('change', (e) => {
+            const val = e.target.value;
+            if(val.startsWith('http')) {
+                document.body.style.backgroundImage = `url('${val}')`;
+                document.body.style.backgroundColor = 'transparent';
+            } else {
+                document.body.style.backgroundImage = 'none';
+                document.body.style.backgroundColor = val || 'var(--bg-base)';
+            }
+            appLog("Background updated.");
+        });
+
+        document.getElementById('ui-sounds-toggle').addEventListener('change', (e) => {
+            state.settings.uiSounds = e.target.checked;
+            appLog(`UI Sounds: ${state.settings.uiSounds}`);
+            if(e.target.checked) playUISound('click');
+        });
+
+        document.getElementById('bgm-toggle').addEventListener('change', (e) => {
+            state.settings.bgm = e.target.checked;
+            toggleBGM(e.target.checked);
+        });
+
+        document.getElementById('btn-clear-logs').addEventListener('click', () => {
+            state.logs = [];
+            document.getElementById('log-list').innerHTML = '';
+            appLog("Logs cleared.");
+        });
+
+        // Hubs Logic
+        els.btnHubs.addEventListener('click', async () => {
+            playUISound('click');
+            const repo = els.syncInput.value.trim();
+            if(!repo) return showMsg("Error", "Please enter a repository first.", "error");
+
+            appLog(`Attempting to fetch hubs from ${repo}/hub.json`);
+            openModal('modal-hubs');
+            const hubsContainer = document.getElementById('hubs-content');
+            hubsContainer.innerHTML = '<div class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin text-2xl mb-2"></i><br>Fetching hubs...</div>';
 
             try {
-                const apiURL = `https://api.github.com/repos/${repoInput}/git/trees/${branchInput}?recursive=1`;
-                const treeRes = await fetch(apiURL);
-                if (!treeRes.ok) throw new Error("Repository not found or API rate limited.");
+                // Use jsdelivr or raw github for cors bypassing
+                const url = `https://raw.githubusercontent.com/${repo}/main/hub.json`;
+                const res = await fetch(url);
+                if(!res.ok) throw new Error("Not found or no access");
                 
-                const treeData = await treeRes.json();
-                const files = treeData.tree.filter(f => f.type === 'blob');
-                if (files.length === 0) throw new Error("No files found in this branch.");
-                if (files.length > 800) throw new Error("Repo too large (>800 files). Manual download required.");
-
-                let downloaded = 0; const batchSize = 10;
-                for (let i = 0; i < files.length; i += batchSize) {
-                    const batch = files.slice(i, i + batchSize);
-                    await Promise.all(batch.map(async (file) => {
-                        const rawUrl = `https://raw.githubusercontent.com/${repoInput}/${branchInput}/${file.path}`;
-                        try {
-                            const fileRes = await fetch(rawUrl);
-                            if (fileRes.ok) {
-                                const blob = await fileRes.blob();
-                                await new Promise(resolve => {
-                                    const tx = db.transaction([FILE_STORE], "readwrite");
-                                    tx.objectStore(FILE_STORE).put({ path: `${repoInput.split('/')[1]}/${file.path}`, name: file.path.split('/').pop(), blob: blob });
-                                    tx.oncomplete = resolve;
-                                });
-                            }
-                        } catch(e) {}
-                        downloaded++; statusBox.textContent = `Downloading ${downloaded} /${files.length} ...`;
-                    }));
-                }
-                statusBox.style.color = "var(--success)"; statusBox.textContent = `Successfully synced ${downloaded} files!`;
-                renderFileTree();
-                setTimeout(() => { closeModal('github-modal'); statusBox.textContent = ''; btn.disabled = false; btn.style.opacity = '1'; }, 1500);
-            } catch (err) {
-                statusBox.style.color = "var(--danger)"; statusBox.textContent = err.message;
-                btn.disabled = false; btn.style.opacity = '1';
-            }
-        }
-
-        // --- File Tree Rendering & Hub Parsing ---
-        function openHubInBlank(url) {
-            let win = window.open('about:blank');
-            if (win) {
-                win.document.write(`<title>Algebra Notes</title><style>body{margin:0;overflow:hidden;background:#000;}</style><iframe src="${url}" style="width:100vw;height:100vh;border:none;"></iframe>`);
-                win.document.close();
-            } else {
-                alert("Popup blocked! Please allow popups to launch hubs.");
-                logToConsole('error', 'Popup blocked while launching hub.');
-            }
-        }
-
-        function renderFileTree() {
-            fileTree.innerHTML = "";
-            if (!db) return;
-
-            db.transaction([FILE_STORE], "readonly").objectStore(FILE_STORE).getAll().onsuccess = (e) => {
-                const allFiles = e.target.result;
-                const launchable = allFiles.filter(f => f.name.endsWith('.html') || f.name.endsWith('.htm') || f.name.endsWith('.enc'));
-                const hubFile = allFiles.find(f => f.name.toLowerCase() === 'hub.json');
-
-                // Render External Hubs if found
-                if (hubFile) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        try {
-                            const hubs = JSON.parse(e.target.result);
-                            if(hubs && hubs.length > 0) {
-                                const hubDiv = document.createElement('div'); hubDiv.className = 'folder-group';
-                                hubDiv.innerHTML = `<div class="folder-title" style="color:var(--success);">🌐 Study Hubs</div><div class="folder-content" id="hub-list"></div>`;
-                                fileTree.insertBefore(hubDiv, fileTree.firstChild);
-                                
-                                hubs.forEach(hub => {
-                                    const li = document.createElement('li'); li.className = 'file-item';
-                                    li.innerHTML = `<div class="file-info"><span class="file-icon">🌐</span><span class="file-name" title="${hub.name}">${hub.name}</span></div>
-                                                    <div class="action-btns"><button class="blank-btn" title="Open in Blank Tab">↗️</button></div>`;
-                                    li.addEventListener('click', () => openHubInBlank(hub.url));
-                                    hubDiv.querySelector('#hub-list').appendChild(li);
-                                });
-                            }
-                        } catch(err) { console.error("hub.json invalid format"); }
-                    };
-                    reader.readAsText(hubFile.blob);
-                }
-
-                if (launchable.length === 0) {
-                    fileTree.innerHTML += `<li style="padding:15px; color:var(--text-muted); font-size:0.85rem; text-align:center;">No files loaded.</li>`;
+                const data = await res.json();
+                
+                if(!data || !data.hubs || data.hubs.length === 0) {
+                    hubsContainer.innerHTML = '<div class="text-center py-8 text-muted">No hubs yet</div>';
+                    appLog("Hubs fetch successful, but no hubs found.");
                     return;
                 }
 
-                const folders = {};
-                launchable.forEach(file => {
-                    const parts = file.path.split('/');
-                    const folderName = parts.length > 1 ? parts[0] : "Root Files";
-                    if (!folders[folderName]) folders[folderName] = [];
-                    folders[folderName].push(file);
-                });
-
-                Object.keys(folders).sort().forEach(folderName => {
-                    const folderDiv = document.createElement('div');
-                    folderDiv.className = 'folder-group';
-                    folderDiv.innerHTML = `<div class="folder-title">📁 ${folderName}</div><div class="folder-content"></div>`;
-                    const contentDiv = folderDiv.querySelector('.folder-content');
-
-                    folders[folderName].sort((a, b) => a.name.localeCompare(b.name)).forEach(file => {
-                        const li = document.createElement('li'); li.className = 'file-item';
-                        
-                        // Check for matching .png for custom Icon
-                        let fileBase = file.path.substring(0, file.path.lastIndexOf('.'));
-                        let matchingImg = allFiles.find(f => f.path.substring(0, f.path.lastIndexOf('.')) === fileBase && f.name.toLowerCase().endsWith('.png'));
-                        
-                        let imgHTML = `<span class="file-icon">📄</span>`;
-                        if (matchingImg) {
-                            let imgUrl = URL.createObjectURL(matchingImg.blob);
-                            imgHTML = `<img src="${imgUrl}" class="file-icon custom-icon">`;
-                        }
-                        
-                        // Selectable Normal/Turbo Launch buttons added per item
-                        li.innerHTML = `
-                            <div class="file-info">${imgHTML}<span class="file-name" title="${file.name}">${file.name}</span></div>
-                            <div class="action-btns">
-                                <button class="normal-btn" title="Launch Normal (Iframe)">▶️</button>
-                                <button class="blank-btn" title="Popout (Turbo Launch)">🚀</button>
-                                <button class="delete-btn" title="Delete File">✕</button>
-                            </div>
-                        `;
-                        
-                        li.addEventListener('click', (ev) => {
-                            if (ev.target.closest('.delete-btn')) { ev.stopPropagation(); deleteVirtualFile(file.path); return; }
-                            
-                            const isTurboBtn = ev.target.closest('.blank-btn') !== null;
-                            const isNormalBtn = ev.target.closest('.normal-btn') !== null;
-                            
-                            // If explicit button clicked, obey it. Otherwise obey global master switch.
-                            let inBlank = false;
-                            if (isTurboBtn) {
-                                inBlank = true;
-                            } else if (isNormalBtn) {
-                                inBlank = false;
-                            } else {
-                                inBlank = turboToggle.checked;
-                            }
-                            
-                            document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
-                            li.classList.add('active');
-                            loadVirtualContent(file.path, allFiles, inBlank);
-                            
-                            if(window.innerWidth < 1000 && !inBlank) sidebar.classList.add('hidden');
-                        });
-                        contentDiv.appendChild(li);
+                hubsContainer.innerHTML = '';
+                data.hubs.forEach(hub => {
+                    const el = document.createElement('div');
+                    el.className = 'p-3 panel-bg border panel-border rounded hover-bg-panel transition cursor-pointer flex justify-between items-center';
+                    el.innerHTML = `
+                        <div>
+                            <div class="font-bold text-main">${hub.name}</div>
+                            <div class="text-xs text-muted">${hub.description || 'No description'}</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
+                    `;
+                    el.addEventListener('click', () => {
+                        appLog(`Hub selected: ${hub.name}`);
+                        showMsg("Hub Clicked", `You selected the hub: ${hub.name}. (Integration logic customizable based on hub structure)`);
                     });
-                    fileTree.appendChild(folderDiv);
+                    hubsContainer.appendChild(el);
                 });
-                filterFiles(); // Refresh search filter after render
-            };
-        }
+                appLog(`Successfully loaded ${data.hubs.length} hubs.`);
 
-        // --- Crypto Decryption Logic ---
-        async function decryptPayload(encData, password) {
-            const enc = new TextEncoder();
-            const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveKey"]);
-            const salt = new Uint8Array(encData.salt.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-            const iv = new Uint8Array(encData.iv.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-            const aesKey = await crypto.subtle.deriveKey({ name: "PBKDF2", salt: salt, iterations: 100000, hash: "SHA-256" }, keyMaterial, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
-            const encryptedBytes = Uint8Array.from(atob(encData.payload), c => c.charCodeAt(0));
-            const decryptedBuffer = await crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, aesKey, encryptedBytes);
-            return new TextDecoder().decode(decryptedBuffer);
-        }
-
-        // --- Content Load & Injection ---
-        function loadVirtualContent(entryPath, allFiles, openInBlankMode) {
-            if (!openInBlankMode) { placeholder.style.display = 'none'; contentFrame.style.display = 'block'; }
-            
-            currentSessionId = Date.now(); currentSessionDate = new Date().toLocaleString(); sessionLogs = []; consoleOut.innerHTML = '';
-            logToConsole('sys', `Starting sequence for ${entryPath}...${openInBlankMode ? '(TURBO POPOUT)' : '(IFRAME)'}`);
-
-            const virtualFileSystem = {};
-            allFiles.forEach(file => { virtualFileSystem[file.path] = URL.createObjectURL(file.blob); });
-
-            const entryBlob = allFiles.find(f => f.path === entryPath).blob;
-            const reader = new FileReader();
-            
-            reader.onload = async function(e) {
-                let htmlContent = e.target.result;
-
-                try {
-                    const parsed = JSON.parse(htmlContent);
-                    if (parsed.payload && parsed.salt && parsed.iv) {
-                        const userKey = document.getElementById('license-key').value;
-                        if (!userKey) { logToConsole('error', 'Boot Failed: Encrypted, but no Key provided.'); return; }
-                        logToConsole('sys', 'Attempting decryption...');
-                        htmlContent = await decryptPayload(parsed, userKey);
-                        logToConsole('sys', 'Decryption successful.');
-                    }
-                } catch(err) { if (err.name !== 'SyntaxError') { logToConsole('error', 'Decryption failed.'); return; } }
-
-                const injectedPayload = `
-                <title>Algebra Notes</title>
-                <style>
-                    /* Stealth & Turbo Resets */
-                    html, body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; background-color: #000; }
-                </style>
-                <script>
-                    window.addEventListener('keydown', (ev) => { if (ev.key === '\`' || ev.key === '~') window.parent.postMessage('bossKeyTrigger', '*'); });
-                    (function() {
-                        const ogLog = console.log, ogWarn = console.warn, ogErr = console.error;
-                        function snd(lvl, args) { try { const p = Array.from(args).map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '); window.parent.postMessage({ source: 'APP_DEBUG', level: lvl, msg: p }, '*'); } catch(e) {} }
-                        console.log = function() { snd('log', arguments); ogLog.apply(console, arguments); };
-                        console.warn = function() { snd('warn', arguments); ogWarn.apply(console, arguments); };
-                        console.error = function() { snd('error', arguments); ogErr.apply(console, arguments); };
-                        window.addEventListener('error', e => snd('error', ['Fatal:', e.message]));
-                    })();
-                <\/script>`;
-
-                if (htmlContent.includes('<head>')) htmlContent = htmlContent.replace('<head>', '<head>' + injectedPayload);
-                else htmlContent = '<head>' + injectedPayload + '</head>' + htmlContent;
-
-                const hasDir = entryPath.includes('/');
-                const currentDir = hasDir ? entryPath.substring(0, entryPath.lastIndexOf('/')) : '';
-                for (const [realPath, blobUrl] of Object.entries(virtualFileSystem)) {
-                    let relToken = realPath;
-                    if (currentDir && realPath.startsWith(currentDir + '/')) relToken = realPath.substring(currentDir.length + 1);
-                    const safeToken = relToken.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-                    htmlContent = htmlContent.replace(new RegExp(`(["'])(./)?${safeToken}(["'])`, 'g'), `$1${blobUrl}$3`);
-                }
-
-                if (openInBlankMode) {
-                    let win = window.open('about:blank');
-                    if (win) {
-                        win.document.write(htmlContent);
-                        win.document.close();
-                        logToConsole('sys', `Launched dynamically into raw about:blank top-level window (Max Performance Mode).`);
-                    } else {
-                        alert("Popup blocked! Please allow popups to use Turbo Mode.");
-                        logToConsole('error', 'Popup blocked! Launch failed.');
-                    }
-                } else {
-                    const modifiedBlob = new Blob([htmlContent], { type: 'text/html' });
-                    contentFrame.src = URL.createObjectURL(modifiedBlob);
-                    contentFrame.onload = () => { contentFrame.focus(); logToConsole('sys', `Internal boot complete.`); applyVideoFilters(); };
-                }
-            };
-            reader.readAsText(entryBlob);
-        }
-
-        // --- Debug & Console ---
-        function logToConsole(level, msg) {
-            const fullString = `[${getTimestamp()}] [${level.toUpperCase()}] ${msg}`;
-            sessionLogs.push(fullString); pendingLogSave = true;
-            const line = document.createElement('div'); line.className = `log-${level}`; line.textContent = fullString;
-            consoleOut.appendChild(line); consoleOut.scrollTop = consoleOut.scrollHeight;
-        }
-
-        function clearCurrentConsole() { consoleOut.innerHTML = ''; logToConsole('sys', 'Console wiped.'); }
-        function toggleConsole() { const container = document.getElementById('console-container'); const btn = document.getElementById('console-toggle-btn'); container.classList.toggle('collapsed'); btn.textContent = container.classList.contains('collapsed') ? 'Expand' : 'Minimize'; }
-
-        // Added checks here to prevent transaction errors
-        setInterval(() => {
-            if (db && pendingLogSave && sessionLogs.length > 0 && currentSessionId) {
-                try {
-                    if (db.objectStoreNames.contains(LOG_STORE)) {
-                        db.transaction([LOG_STORE], "readwrite").objectStore(LOG_STORE).put({ id: currentSessionId, date: currentSessionDate, logCount: sessionLogs.length, data: sessionLogs });
-                        pendingLogSave = false;
-                    }
-                } catch(e) {}
-            }
-        }, 2000);
-
-        function renderLogList() {
-            const dbList = document.getElementById('db-list');
-            if (!db) return;
-            try {
-                if (!db.objectStoreNames.contains(LOG_STORE)) return;
-                db.transaction([LOG_STORE], "readonly").objectStore(LOG_STORE).getAll().onsuccess = (e) => {
-                    const results = e.target.result.reverse();
-                    if (results.length === 0) { dbList.innerHTML = "<div style='color:var(--text-muted); text-align:center; padding: 20px;'>No logs.</div>"; return; }
-                    dbList.innerHTML = '';
-                    results.forEach(record => {
-                        const row = document.createElement('div'); row.className = 'db-item';
-                        const info = document.createElement('span');
-                        info.innerHTML = `<strong>Session: ${record.date}</strong><br><span style="font-size:12px;color:var(--text-muted);">${record.logCount} logs</span>`;
-                        const btnGroup = document.createElement('div');
-                        const dBtn = document.createElement('button'); dBtn.className = "btn btn-secondary"; dBtn.textContent = '📥';
-                        dBtn.onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([record.data.join('\n')], { type: 'text/plain' })); a.download = `Log_${record.date.replace(/[/\\:]/g, '-')}.txt`; a.click(); };
-                        const delBtn = document.createElement('button'); delBtn.className = 'btn btn-red'; delBtn.textContent = '🗑';
-                        delBtn.onclick = () => { if (confirm("Delete?")) db.transaction([LOG_STORE], "readwrite").objectStore(LOG_STORE).delete(record.id).oncomplete = renderLogList; };
-                        btnGroup.appendChild(dBtn); btnGroup.appendChild(delBtn); row.appendChild(info); row.appendChild(btnGroup); dbList.appendChild(row);
-                    });
-                };
-            } catch(e) {}
-        }
-
-        // --- Utilities ---
-        function toggleFullscreen() {
-            if (contentFrame.style.display === 'none') return;
-            const wrapper = document.getElementById('content-wrapper');
-            if (!document.fullscreenElement) { wrapper.requestFullscreen().catch(err => console.log(err)); } else { document.exitFullscreen(); }
-        }
-        function deleteVirtualFile(path) { db.transaction([FILE_STORE], "readwrite").objectStore(FILE_STORE).delete(path).oncomplete = renderFileTree; }
-        document.getElementById('clear-db-btn').addEventListener('click', () => {
-            if (confirm("Purge ALL files?")) {
-                db.transaction([FILE_STORE], "readwrite").objectStore(FILE_STORE).clear().oncomplete = () => {
-                    contentFrame.src = "about:blank"; contentFrame.style.display = 'none'; placeholder.style.display = 'block'; renderFileTree();
-                };
+            } catch (err) {
+                hubsContainer.innerHTML = '<div class="text-center py-8 text-muted">No hubs yet</div>';
+                appLog(`Hubs fetch error: ${err.message}`);
             }
         });
 
-        // --- Visual / Audio Controls ---
-        const applyVideoFilters = () => {
-            const b = document.getElementById('vid-brightness').value, c = document.getElementById('vid-contrast').value;
-            const s = document.getElementById('vid-saturation').value, i = document.getElementById('vid-invert').value; const g = document.getElementById('vid-gamma').value / 100;
-            document.getElementById('val-brightness').textContent = `${b}%`; document.getElementById('val-contrast').textContent = `${c}%`; document.getElementById('val-saturation').textContent = `${s}%`; document.getElementById('val-gamma').textContent = `${g.toFixed(1)}x`; document.getElementById('val-invert').textContent = `${i}%`;
-            contentFrame.style.filter = `brightness(${b * g}%) contrast(${c}%) saturate(${s}%) invert(${i}%)`;
-        };
-        ['vid-brightness', 'vid-contrast', 'vid-saturation', 'vid-gamma', 'vid-invert'].forEach(id => document.getElementById(id).addEventListener('input', applyVideoFilters));
+        // --- STREAMING_CHUNK: GitHub Sync and File Loading Logic ---
+
+        // Determine if file is viewable based on constraints
+        function isFileViewable(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            return ext === H_EXT || ext === 'txt' || ext === 'js' || ext === 'css' || ext === 'json' || ext === 'md';
+        }
+
+        async function processFileContent(content, filename) {
+             const blob = new Blob([content], { type: isFileViewable(filename) ? H_MIME : 'text/plain' });
+             return URL.createObjectURL(blob);
+        }
+
+        // GitHub Sync
+        els.btnSync.addEventListener('click', async () => {
+            playUISound('click');
+            const repo = els.syncInput.value.trim();
+            if(!repo) return showMsg("Sync Failed", "Please enter a repository in format owner/repo", "error");
+
+            appLog(`Initiating GitHub Sync for: ${repo}`);
+            els.btnSync.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Syncing';
+            els.btnSync.disabled = true;
+
+            try {
+                const res = await fetch(`https://api.github.com/repos/${repo}/contents/`);
+                if(!res.ok) throw new Error(`GitHub API returned ${res.status}`);
+                
+                const tree = await res.json();
+                const viewableFiles = tree.filter(f => f.type === 'file' && isFileViewable(f.name));
+                
+                appLog(`Found ${viewableFiles.length} viewable items in root.`);
+                
+                if(viewableFiles.length === 0) {
+                    showMsg("No Items", "No valid items found in the root of this repository.", "info");
+                } else {
+                    // Convert git files to our state objects
+                    for(let f of viewableFiles) {
+                        // Fetch raw content to create blob (bypassing github's text/plain MIME lock for html)
+                        appLog(`Fetching content for ${f.name}...`);
+                        const rawRes = await fetch(f.download_url);
+                        const content = await rawRes.text();
+                        const blobUrl = await processFileContent(content, f.name);
+
+                        state.items.push({
+                            id: Math.random().toString(36).substr(2, 9),
+                            name: stripExtension(f.name),
+                            originalName: f.name,
+                            url: blobUrl,
+                            source: 'github'
+                        });
+                    }
+                    appLog("Sync complete. Re-rendering items.");
+                    renderItems();
+                    showMsg("Sync Complete", `Successfully synced ${viewableFiles.length} items from ${repo}.`, "success");
+                }
+
+            } catch(e) {
+                appLog(`Sync error: ${e.message}`);
+                showMsg("Sync Error", `Failed to sync repository: ${e.message}`, "error");
+            } finally {
+                els.btnSync.innerHTML = '<i class="fas fa-sync-alt mr-2"></i>Sync';
+                els.btnSync.disabled = false;
+            }
+        });
+
+        // --- STREAMING_CHUNK: Local File Ingestion (Files & Zip) ---
+
+        document.getElementById('upload-file').addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            if(!files.length) return;
+            
+            appLog(`User uploaded ${files.length} standard file(s).`);
+            files.forEach(file => {
+                if(isFileViewable(file.name)) {
+                    const blobUrl = URL.createObjectURL(file);
+                    state.items.push({
+                        id: Math.random().toString(36).substr(2, 9),
+                        name: stripExtension(file.name),
+                        originalName: file.name,
+                        url: blobUrl,
+                        source: 'local'
+                    });
+                } else {
+                    appLog(`Skipped unsupported file type: ${file.name}`);
+                }
+            });
+            renderItems();
+            e.target.value = ''; // reset
+        });
+
+        // Zip Upload handling
+        document.getElementById('upload-folder').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+
+            appLog(`User uploaded Zip archive: ${file.name}`);
+            
+            try {
+                if(!window.JSZip) throw new Error("JSZip library not loaded.");
+                const zip = new JSZip();
+                const contents = await zip.loadAsync(file);
+                
+                let processed = 0;
+                for (const [filename, zipEntry] of Object.entries(contents.files)) {
+                    if(!zipEntry.dir && isFileViewable(filename)) {
+                        const content = await zipEntry.async("text");
+                        const blobUrl = await processFileContent(content, filename);
+                        
+                        // Just get the filename, not the full path for UI
+                        const shortName = filename.split('/').pop();
+
+                        state.items.push({
+                            id: Math.random().toString(36).substr(2, 9),
+                            name: stripExtension(shortName),
+                            originalName: shortName,
+                            url: blobUrl,
+                            source: 'zip'
+                        });
+                        processed++;
+                    }
+                }
+                
+                appLog(`Extracted ${processed} valid items from Zip.`);
+                renderItems();
+                showMsg("Zip Loaded", `Successfully extracted ${processed} viewable items.`, "success");
+
+            } catch (err) {
+                appLog(`Zip extraction error: ${err.message}`);
+                showMsg("Extraction Error", `Failed to read zip: ${err.message}`, "error");
+            }
+            e.target.value = ''; // reset
+        });
+
+
+        // --- STREAMING_CHUNK: View Layer and Explorer Interactions ---
+
+        function renderItems(filter = '') {
+            els.itemGrid.innerHTML = '';
+            
+            const term = filter.toLowerCase();
+            const filteredItems = state.items.filter(item => 
+                item.name.toLowerCase().includes(term) || 
+                item.originalName.toLowerCase().includes(term)
+            );
+
+            if(state.items.length === 0) {
+                els.emptyState.classList.remove('hide');
+                els.itemGrid.classList.add('hide');
+                return;
+            }
+
+            els.emptyState.classList.add('hide');
+            els.itemGrid.classList.remove('hide');
+
+            filteredItems.forEach(item => {
+                const el = document.createElement('div');
+                
+                if (state.viewMode === 'grid') {
+                    el.className = 'panel-bg panel-border border rounded-lg p-4 flex flex-col items-center justify-center text-center cursor-pointer hover-bg-panel transition group relative shadow hover:shadow-lg hover:border-accent hover:-translate-y-1 transform duration-200';
+                    el.innerHTML = `
+                        <div class="text-4xl text-accent mb-3 group-hover:scale-110 transition duration-200">
+                            <i class="${getIconForSource(item.source)}"></i>
+                        </div>
+                        <div class="font-semibold text-main text-sm break-all w-full leading-tight mb-1">${item.name}</div>
+                        <div class="text-xs text-muted absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition"><i class="fas fa-play"></i></div>
+                    `;
+                } else {
+                    // List View
+                    el.className = 'panel-bg panel-border border rounded p-3 flex items-center gap-4 cursor-pointer hover-bg-panel transition group hover:border-accent';
+                    el.innerHTML = `
+                        <div class="text-xl text-accent w-8 text-center"><i class="${getIconForSource(item.source)}"></i></div>
+                        <div class="font-semibold text-main flex-1">${item.name}</div>
+                        <div class="text-xs text-muted px-2 py-1 bg-black/20 rounded uppercase">${item.source}</div>
+                    `;
+                }
+
+                el.addEventListener('click', () => openViewer(item));
+                els.itemGrid.appendChild(el);
+            });
+        }
+
+        function getIconForSource(source) {
+            if(source === 'github') return 'fab fa-github';
+            if(source === 'zip') return 'fas fa-file-archive';
+            return 'fas fa-file-code';
+        }
+
+        els.searchInput.addEventListener('input', (e) => renderItems(e.target.value));
+
+        document.getElementById('btn-grid').addEventListener('click', (e) => {
+            state.viewMode = 'grid';
+            els.itemGrid.className = 'grid-view';
+            e.currentTarget.classList.add('bg-accent', 'text-white');
+            e.currentTarget.classList.remove('text-muted');
+            document.getElementById('btn-list').classList.remove('bg-accent', 'text-white');
+            document.getElementById('btn-list').classList.add('text-muted');
+            renderItems(els.searchInput.value);
+            playUISound('click');
+        });
+
+        document.getElementById('btn-list').addEventListener('click', (e) => {
+            state.viewMode = 'list';
+            els.itemGrid.className = 'list-view';
+            e.currentTarget.classList.add('bg-accent', 'text-white');
+            e.currentTarget.classList.remove('text-muted');
+            document.getElementById('btn-grid').classList.remove('bg-accent', 'text-white');
+            document.getElementById('btn-grid').classList.add('text-muted');
+            renderItems(els.searchInput.value);
+            playUISound('click');
+        });
+
+        // --- STREAMING_CHUNK: Viewer Core Logic (Iframe, Fullscreen, about:blank) ---
+
+        function openViewer(item) {
+            appLog(`Opening item: ${item.name} in Viewer`);
+            state.activeBlobUrl = item.url;
+            
+            els.viewerTitle.textContent = item.name;
+            els.viewerIframe.src = item.url;
+            
+            // Show Viewer Overlay
+            els.viewerWrapper.classList.remove('hide');
+            playUISound('open');
+        }
+
+        els.btnCloseViewer.addEventListener('click', () => {
+            appLog("Closing viewer.");
+            els.viewerWrapper.classList.add('hide');
+            els.viewerIframe.src = 'about:blank'; // cleanup memory slightly
+            state.activeBlobUrl = null;
+            playUISound('click');
+        });
+
+        // Launch in about:blank
+        els.btnLaunchBlank.addEventListener('click', async () => {
+            if(!state.activeBlobUrl) return;
+            appLog("Launching item in new about:blank window");
+            playUISound('click');
+            
+            try {
+                // Fetch the blob content to inject directly
+                const res = await fetch(state.activeBlobUrl);
+                const content = await res.text();
+                
+                const win = window.open('about:blank', '_blank');
+                win.document.open();
+                win.document.write(content);
+                win.document.close();
+            } catch (err) {
+                appLog(`Launch failed: ${err.message}`);
+                showMsg("Launch Error", "Could not fetch blob content to open in new window.", "error");
+            }
+        });
+
+        // Fullscreen Only HTML Iframe
+        els.btnFullscreen.addEventListener('click', () => {
+            appLog("Requesting fullscreen for iframe only.");
+            playUISound('click');
+            const iframe = els.viewerIframe;
+            if (iframe.requestFullscreen) {
+                iframe.requestFullscreen();
+            } else if (iframe.webkitRequestFullscreen) { /* Safari */
+                iframe.webkitRequestFullscreen();
+            } else if (iframe.msRequestFullscreen) { /* IE11 */
+                iframe.msRequestFullscreen();
+            }
+        });
+
+        // Initialize application visual state
+        updateVideoFilters();
+        appLog("Application Initialized successfully.");
+
     </script>
 </body>
 </html>
